@@ -33,7 +33,7 @@ Keycloak provides Single Sign-On (SSO) capability, Identity Brokering, User Fede
 
 A Keycloak instance is deployed into the *Infra* cluster as part of the OBP deployment pipeline.
 
-image::./Keycloak_UI.png[Example Keycloak web UI screen]
+image::./Readme_images/Keycloak_UI.png[Example Keycloak web UI screen]
 
 === Keycloak Configuration Overview
 
