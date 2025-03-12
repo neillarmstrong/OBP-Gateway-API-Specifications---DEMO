@@ -7,21 +7,17 @@
 * <<Request Sequencing for Complex Workflows>>
 
 == Overview
-Optiva's API gateway enables integrators to leverage the power of Optiva's BSS and Customer Management solution with third-party applications.
+Optiva's API gateway enables integrators to leverage the power of Optiva's BSS and Customer Management solutions with third-party applications.
 
-We have three specifications:
+Optiva's API gateway has the three following API Specifications:
 
-* Customer Management API
+* *cmsapigw-swagger -* Optiva's Customer Management API, which includes a series of requests that allow third-party applications to offer the functionality of Optiva's Customer Management Portal. 
 
-* Rest to Rest 
+* *obp-rtr-apigw -* Optiva's BSS API (REST to REST), which includes a series of requests to interact with Optiva's BSS.   
 
-* Rest to Soap
-
-Some explanation as to why that is
+* *obp-rts-apigw -* Optiva's BSS API (REST to SOAP), which includes a series of requests to interact with Optiva's BSS. 
 
 Optiva's API leverages endpoints that are goal-oriented and that can be used either individually or as part of a more complex workflow.
-
-Optiva's API uses Keycloak for authentication.
 
 *Note:* Optiva's API specifications are hollistic and include both requests that can be integrated against by third parties as well as requests that are only for Optiva's use.
 
@@ -31,7 +27,18 @@ Optiva's API gateway uses Keycloak for authentication of requests.
 
 === Introduction to Keycloak
 
+https://www.keycloak.org/[Keycloak] is used to provide the identity management module for secure access between applications within OBP.
+
+Keycloak provides Single Sign-On (SSO) capability, Identity Brokering, User Federation, and Authorization Services. Keycloak supports external IDPs such as LDAP or ADP via User Federation and SSO redirect for OIDC & SAML logins via Identity Brokering.
+
+A Keycloak instance is deployed into the *Infra* cluster as part of the OBP deployment pipeline.
+
+image::./Keycloak_UI.png[Example Keycloak web UI screen]
+
 === Keycloak Configuration Overview
+
+To setup Keycloak for use with Optiva's APIs, you must perform the following tasks:
+
 
 . <<Identifying the Keycloak Admin Account>>
 
