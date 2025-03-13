@@ -460,31 +460,119 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 ** _billingAccount_
 
-[cols="1,1,1,1,1"]
+[cols="1,1,1,1,2"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |Provisioning a New Subscriber using the _quickPrepaidBillingAccount_ endpoint
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
+|1. _/api/quickPrepaidBillingAccount_
+|POST
+|-
 
 |
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. _/api/productOrder_
+|POST 
+|You need to include the Account's _id_ with this request 
 
-|User Journey 2
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
+|Provisioning a New Subscriber using the _individual_, _customer_, and _billingAccount_ endpoints
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. _/api/individual_
+|POST
+|-
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. _/api/customer_
+|POST
+|You need to include the Party's _id_ and _href_ with this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. _/api/billingAccount_
+|POST
+|You need to include the Customer's _id_ and _href_ with this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|4. _/api/productOrder_
+|POST 
+|You need to include the Account's _id_ with this request 
+
+|Adding a Stored Payment Method to a Subscriber
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. Create the Account as described in the previous user journeys
+|-
+|-
+
+|
+|Refer to Payment Gateway API documentation
+|2. Aquire the Acoount's _tokenValue_ from your integrated payment gateway.
+|-
+|-
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. _/api/paymentGatewayIntegration/createToken_
+|POST
+|You need to sent the Account's _tokenValue_ with this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|4. _/api/paymentMethod_
+|POST
+|You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
+
+*Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
+
+
+- _maskedCardNumber_ - We recommend using '1111'
+
+
+- _expiryDate_ - We recommend using '2200/01'
+
+|Adding a Stored Payment Method to a Subscriber and Adding an Automatic Top Up (ATU)
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. Create the Account as described in the previous user journeys
+|-
+|-
+
+
+|Refer to Payment Gateway API documentation
+|2. Aquire the Acoount's _tokenValue_ from your integrated payment gateway.
+|-
+|-
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. _/api/paymentGatewayIntegration/createToken_
+|POST
+|You need to sent the Account's _tokenValue_ with this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|4. _/api/paymentMethod_
+|POST
+|You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
+
+*Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
+
+
+- _maskedCardNumber_ - We recommend using '1111'
+
+
+- _expiryDate_ - We recommend using '2200/01'
+
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|5. _/api/productOrder_
+|POST
+|You need to send the _atuTokenID_ and _atuAmount_ parameters with this request. The value for the _atuTokenID_ is the _tokenID_ for the Account's stored Payment Method.
+
 |===
 
 === Mobile Number Porting
