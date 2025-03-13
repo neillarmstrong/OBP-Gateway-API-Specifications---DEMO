@@ -460,7 +460,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 ** _billingAccount_
 
-[cols="1,1,1,1,2"]
+[cols="1,1,1,2,2"]
 |===
 |*User Journey*
 |*API Specification*
@@ -542,9 +542,9 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |-
 |-
 
-
+|
 |Refer to Payment Gateway API documentation
-|2. Aquire the Acoount's _tokenValue_ from your integrated payment gateway.
+|2. Aquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
 |-
 
@@ -568,6 +568,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 - _expiryDate_ - We recommend using '2200/01'
 
+|
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |5. _/api/productOrder_
 |POST
