@@ -460,7 +460,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 ** _billingAccount_
 
-[cols="1,1,1,2,2"]
+[cols="1,1,2,1,2"]
 |===
 |*User Journey*
 |*API Specification*
@@ -578,32 +578,8 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 === Mobile Number Porting
 
-[cols="1,1,1,1,1"]
-|===
-|*User Journey*
-|*API Specification*
-|*Sequence*
-|*Request Type*
-|*Endpoint*
+Mobile Number Portability allows Subscribers to move their mobile number from one service provider to another. This is possible only when the Subscriber's number is eligible for Port In to the new service provider's system. For more information, see the _/api/mnp/eligibility_ endpoint in link:./cmsapigw-swagger.yml[cmsapigw.swagger].
 
-|User Journey 1
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
-
-|
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-
-|User Journey 2
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
-|===
 === Managing Entities
 
 [cols="1,1,1,1,1"]
@@ -612,7 +588,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -640,7 +616,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -668,7 +644,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -690,59 +666,119 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |===
 === Using Payment Schedules
 
+Payment Schedules provide the mechanism to charge to an Account's saved payment method at a future date and time and can be used to apply Automatic Top Up (ATU) to prepaid subscriptions.
+
+Note: When applying ATU to a prepaid subscription during the onboarding process, use the _/api/productOrder_ endpoint and send the _atuTokenID_ and _atuAmount_ parameters.
+
 [cols="1,1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
-|User Journey 1
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
+|Applying ATU to an Existing Prepaid Subscription
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. _/api/paymentGatewayIntegration/createSchedule_
+|POST
+|You need to send the ID of the Account's payment token with this request
+
+|Cancelling ATU for a Prepaid Subscription
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. _/api/paymentGatewayIntegration/deleteSchedule_
+|DELETE
+|You need to send the _scheduleID_ with this request
+
+|Changing the ATU for a Prepaid Subscription
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. _/api/paymentGatewayIntegration/deleteSchedule_
+|DELETE
+|You need to send the _scheduleID_ with this request
 
 |
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. _/api/paymentGatewayIntegration/createSchedule_
+|POST
+|You need to send the ID of the Account's payment token with this request
 
-|User Journey 2
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. _
 |===
 === Managing Payment Methods
 
+Payment methods provide the mechanism to retrieve Account payment information, debit card or credit card details, from an external payment gateway to ensure your system is compliant with the Payment Card Industry Data Security Standards (PCI DSS).
+
+Customer Management stores the authentication credentials to retrieve payment method details for individual Accounts. None of the sensitive payment method details are stored in Customer Management.
+
+*Note:* An Account can have only one stored payment method at any time.
+
 [cols="1,1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
-|User Journey 1
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
+|Adding a Stored Payment Method for an Account
+|Refer to Payment Gateway API documentation
+|1. Aquire the Acoount's _tokenValue_ from your integrated payment gateway.
+|-
+|-
 
 |
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
-|Cell in column 2, row 3 
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. _/api/paymentGatewayIntegration/createToken_
+|POST
+|You need to sent the Account's _tokenValue_ with this request
 
-|User Journey 2
-|Cell in column 2, row 2
-|Cell in column 1, row 2
-|Cell in column 2, row 2
-|Cell in column 1, row 3
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. _/api/paymentMethod_
+|POST
+|You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
+
+*Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
+
+
+- _maskedCardNumber_ - We recommend using '1111'
+
+
+- _expiryDate_ - We recommend using '2200/01'
+
+|Updating the Stored Payment Method for an Account
+|Refer to Payment Gateway API documentation
+|1. Aquire the Acoount's _tokenValue_ from your integrated payment gateway.
+|-
+|-
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. _/api/paymentGatewayIntegration/createToken_
+|POST
+|You need to sent the Account's _tokenValue_ with this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. _/api/paymentMethod{id}_
+|PATCH
+|You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
+
+*Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
+
+
+- _maskedCardNumber_ - We recommend using '1111'
+
+
+- _expiryDate_ - We recommend using '2200/01'
+
+|Deleting the Stored Payment Method for an Account
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1._/api/paymentMethod/{id}_
+|DELETE
+|-
 |===
 === Using Refer a Friend Bonuses
 
@@ -752,7 +788,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -780,7 +816,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -808,7 +844,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -837,7 +873,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -865,7 +901,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
@@ -893,7 +929,7 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |*API Specification*
 |*Sequence*
 |*Request Type*
-|*Endpoint*
+|*Notes*
 
 |User Journey 1
 |Cell in column 2, row 2
