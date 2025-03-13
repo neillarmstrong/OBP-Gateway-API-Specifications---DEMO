@@ -438,13 +438,27 @@ Use the following parameters to create a User that can access the API Gateway. F
 
 ** *Last name -* Enter birth last name of the responsible POC into the text box.
 
-* Add the CM roles created previously to the User account. For the procedure to add roles see https://www.keycloak.org/docs/latest/server_admin/#proc-assigning-role-mappings_server_administration_guide+[the official Keycloak documentation]
-.
+* Add the CM roles created previously to the User account. For the procedure to add roles see https://www.keycloak.org/docs/latest/server_admin/#proc-assigning-role-mappings_server_administration_guide+[the official Keycloak documentation].
+
 == Request Sequencing for Complex Workflows
 
 Paragraph to cover how requests can acheive single goals or be stitched together into a more complex user journeys.
 
 === Provisioning a New Subscriber
+
+To have an active Subscription, subscribers must be associated with an Account, which in turn must be associated with a Customer and a Party. To add a new Subscription to an Account, use the _productOrder_ endpoint.
+
+There are two methods to provision a new subscriber if an Account entity, a Customer entity, and a Party entity are also needed: 
+
+* Using the _quickPrepaidBillingAccount_ endpoint. When using this endpoint, Customer Management creates a corresponding Party and Customer for the new Account. You can then create a new Subscription for the newly created Account
+
+* Creating each entity using the following endpoints, and then creating a new Subscription for the newly created Account:
+
+** _individual_
+
+** _customer_
+
+** _billingAccount_
 
 [cols="1,1,1,1,1"]
 |===
@@ -454,8 +468,8 @@ Paragraph to cover how requests can acheive single goals or be stitched together
 |*Request Type*
 |*Endpoint*
 
-|User Journey 1
-|Cell in column 2, row 2
+|Provisioning a New Subscriber using the _quickPrepaidBillingAccount_ endpoint
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |Cell in column 1, row 2
 |Cell in column 2, row 2
 |Cell in column 1, row 3
