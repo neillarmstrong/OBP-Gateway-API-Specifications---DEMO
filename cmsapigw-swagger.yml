@@ -1,0 +1,1172 @@
+openapi: 3.0.0
+info:
+  title: Customer Management
+  description: >-
+    This is the YAML API specification generated for the Optiva's Customer Management API. We've created this API following TMF specifications to provide a feature-rich interface for end-to-end Customer Management, including some of the following use cases: 
+        
+    <details>
+    <summary>Managing Parties, Accounts, and Customers</summary>
+
+
+    A range of endpoints that provide the ability to view, edit, or delete Parties, Customers, and Accounts. The endpoints use the following to denote their function:
+
+    - `quickPrepaidBillingAccount` - Use these endpoints to quickly create new Parties, Accounts, and Customers. Depending on the amount of information that you provide as part of your requests, you may need to make further requests to the `individual`, `billingAccount`, or `customer` before a subscription can be provisioned.
+
+    - `individual` - Use these endpoints to manage Parties.
+
+    - `partyInteraction` - Use these endpoints to manage Party Interactions.
+
+    - `billingAccount` - Use these endpoints to manage Accounts.
+
+    - `note` - Use these endpoints to view or add CSR notes to Accounts.
+
+    - `detailedIdentifications` - Use this endpoint to view a list of identification types that can be used to validate an Account.
+
+    - `customer` - Use these endpoints to manage Customers.
+
+    - `allEntity` - Use this endpoint to search all entry types.
+
+    </details>
+
+    <details>
+    <summary>Managing Subscriptions</summary>
+    
+
+    A range of endpoints that provide the ability to manage Subscriptions. The endpoints use the following to denote their function:
+
+    - `subscription` - Use these endpoints to manage Subscriptions.
+
+    - `mnp` - Use this endpoint to check the port-in eligibility of a mobile number.
+
+    - `mobileNumberPortingType` - Use this endpoint to check the porting type of a mobile number.
+
+    - `resource` - Use these endpoints to reserve a MSISDN or cancel a MSISDN reservation.
+
+    - `pin` - Use these endpoints to manage a Subscription's PIN.
+
+    - `callDetail` - Use this endpoint to view the detailed call records for a Subscription.
+
+    - `note` - Use these endpoints to view or add CSR notes to a Subscription.
+
+    - `supplementaryData` - Use these endpoints to view or add supplementary data to a Subscription.
+
+    - `resetVoicemailPassword` - Use this endpoint to reset a Subscription's voicemail password.
+    
+
+    **Note:** For information about how to create a subscription or how to create or manage vouchers see OBP's SOAP to REST API.
+
+    </details>
+
+    <details>
+    <summary>Managing Products and Orders</summary>
+
+
+    A range of endpoints that provide the ability to manage Products and Orders. The endpoints use the following to denote their function:
+
+    - `category` - Use these endpoints to view existing Product Categories.
+
+    - `simCategory` - Use this endpoint to view existing SIM Categories.
+
+    - `msisdnGroup` - Use this endpoint to view existing msisdnGroups.
+
+    - `productOffering` - Use these endpoints to view details or Product Offerings and Price Plans.
+
+    - `productOfferingFilters` - Use this endpoint to view the filter types based on Product Catalog Offering Rules.
+
+    - `shoppingCart` - Use these endpoints to manage Shopping Cart functionality.
+
+    - `productOrder` - Use these endpoints to manage Product Orders.
+
+    - `cardPackage` - Use this endpoint to view the details of a card package.
+
+
+    </details> 
+
+    <details>
+    <summary>Managing Payment Tokens and Charges</summary>
+
+
+    A range of endpoints that provide the ability to apply charges, manage Payment Schedules, and manage Payment Tokens. The endpoints use the following to denote their function:
+
+    - `PaymentGatewayIntegration` - Use these endpoints to integrate with a Payment Gateway.
+
+
+    </details>
+
+    <details>
+    <summary>Managing Payment Methods</summary>
+
+
+    A range of endpoints that provide the ability to manage Payment Methods. The endpoints use the following to denote their function:
+
+    - `paymentMethod` - Use these endpoints to manage Payment Methods.
+
+    - `createPaymentSession` - Use this endpoint to capture payment or set up preauthorized payment. **Note:** The use of this endpoint is not available for all integrations, contact your Optiva representative for more information.
+
+
+    </details>
+
+    <details>
+    <summary>Managing Offers and Promotions</summary>
+
+
+    A range of endpoints that provide the ability to manage Offers and Promotions. The endpoints use the following to denote their function:
+
+    - `voucher` - Use this endpoint to view a list of vouchers.
+
+    - `bundleCategory` - Use this endpoint to view a list of Bundle Categories configured for a specified service provider.
+
+    - `campaign` - Use these endpoint to manage campains.
+
+    - `validatePromotion` - Use this endpoint to validate a Promotion.
+
+    - `raf` - Use this endpoint to manage Refer A Friend bonuses and add ons.
+
+    </details>
+
+    <details>
+    <summary>Managing Customer Cases</summary>
+
+
+    A range of endpoints that provide the ability to manage Customer Cases as part of Customer Management's Case Management functionality. The endpoints use the following to denote their function:
+
+    - `case` - Use this endpoint to search for a Case.
+
+
+    </details>
+
+    <details>
+    <summary>Optiva Use Only</summary>
+
+
+    A range of endpoints used only by Optiva Applications and Personnel.
+
+    **Important:** These endpoints should **not** be integrated by any other digital channel.
+
+    </details>
+
+
+    **Note:** Not all functionality is available to all deployments, for more information contact your Optiva Services Representative.
+       
+
+    ### Customer Management's Topology for Entry Management
+
+    _Entries_ are used to store contact information, allocate billing details, and assign subscriptions to an end user. The Customer Management API uses three entry types that have the following topology:
+
+    1. **Party Entry -** Details of an individual person that is representing themselves or an organisation in the system.
+
+    2. **Customer Entry -** Details of an individual person who engages in transactions for services and products.
+
+    3. **Account Entry -** Details of a financial entity used to record all accounting transactions related to associated Subscriptions.
+
+
+    **Note:** It's advised to define entries following this topology.
+
+
+    ### Request Sequencing for Complex Workflows
+
+    The Customer Management API provides third-party integrators with the flexibility to sequence requests based on their specific use cases. However, the following examples highlight some of the common workflows that can be implemented using this API:
+
+    <details>
+    <summary>Provisioning a New Subscriber</summary>
+
+
+    Subscribers are Customers that have an active subscription. The process of provisioning a Subscriber consists of the following steps:
+        
+    1. Creating a Party using the `/api/individual` endpoint.
+        
+    2. Creating a Customer using the `/api/customer` endpoint.
+        
+    3. Creating an Account using the `/api/billingAccount` endpoint.
+        
+    4. Creating a new subscription using the `/api/productOrder` endpoint.
+
+  
+    **Note:** A Subscriber must be associated with a Party, if a Party doesn't exist, it must be created. If the Party does exist, you can use `GET /api/individual` or `GET /api/individual/{id}` to get the values for the `relatedParty` parameter to send when creating a Customer.
+        
+    Alternatively, you can use the **Quick Billing Account** Interface to create a new Account with a single request. When using the Quick Billing Account Interface, Customer Management creates a corresponding Party and Customer for the new Account. You can then create a new subscription for the newly created Account.
+
+
+    ### Onboarding Prepaid Subscribers with Stored payment methods and Automatic Top Up
+
+    You can store a payment methods against an Account. A payment method is used to pay for subscription orders. When creating a payment method, you can also apply an Automatic Top UP (ATU) configuration to make scheduled payments from the payment method. 
+
+    There are two different sequences to achieve this:
+    
+    #### Adding a stored payment method to a Subscriber 
+
+    1. Acquire the Account's `tokenValue` from your integrated payment gateway. **Note:** The process to do this differs depending on the payment gateway that you've integrated with, refer to their documentation for more information.
+
+    2. Create a payment token for the Account using the `/api/paymentGatewayIntegration/createToken` endpoint.
+
+    3. Create a stored payment method for the Account using the `/api/paymentMethod` endpoint.
+
+
+    #### Adding a payment method for a Subscriber and create an ATU
+
+
+    1. Acquire the Account's `tokenValue` from your integrated payment gateway. **Note:** The process to do this differs depending on the payment gateway that you've integrated with, refer to their documentation for more information.
+
+    2. Create a payment token for the Account using the `/api/paymentGatewayIntegration/createToken` endpoint.
+
+    3. Create a stored payment method for the Account using the `/api/paymentMethod` endpoint.
+
+    4. Create an ATU using the `/api/productOrder` endpoint and sending the `atuTokenID` and `atuAmount` parameters. The value for the `atuTokenID` is the `tokenID` for the Account's stored Payment Method.
+
+
+    </details>
+
+    <details>
+    <summary>Mobile Number Porting</summary>
+
+
+    Mobile Number Portability allows Subscribers to move their mobile number from one service provider to another. This is possible only when the Subscriber's number is eligible for Port In to the new service provider's system.
+
+    For more information, see the `/api/mnp/eligibility` endpoint.
+
+    
+    </details>
+
+    <details>
+    <summary>Using Payment Schedules</summary>
+
+
+    Payment Schedules provide the mechanism to charge to an Account's saved payment method at a future date and time and can be used to apply Automatic Top Up (ATU) to prepaid subscriptions.
+
+    
+    **Note:** When applying ATU to a prepaid subscription during the onboarding process, use the `/api/productOrder` endpoint and send the `atuTokenID` and `atuAmount` parameters.
+
+    
+    ### Applying ATU to an existing prepaid subscription
+
+    1. Create an ATU using the `/api/paymentGatewayIntegration/createSchedule` endpoint.
+
+    ### Cancelling ATU for a prepaid subscription
+
+    1. Remove an existing ATU using the `/api/paymentGatewayIntegration/deleteSchedule` endpoint.
+
+    ### Changing an ATU for a prepaid subscription
+
+    1. Remove the existing ATU using the `/api/paymentGatewayIntegration/deleteSchedule` endpoint.
+
+    2. Create a new ATU using the `/api/paymentGatewayIntegration/createSchedule` endpoint.
+
+    </details>
+
+    <details>
+    <summary>Managing Payment Methods</summary>
+
+
+    Payment methods provide the mechanism to retrieve Account payment information, debit card or credit card details, from an external payment gateway to ensure your system is compliant with the Payment Card Industry Data Security Standards (PCI DSS). 
+
+
+    Customer Management stores the authentication credentials to retrieve payment method details for individual Accounts. None of the sensitive payment method details are stored in Customer Management.
+
+
+    **Note:** An Account can have only one stored payment method at any time.
+
+
+    ### Adding a stored payment method for an Account
+
+    1. Acquire the Account's `tokenValue` from your integrated payment gateway. 
+
+    **Note:** The process to do this differs depending on the payment gateway that you've integrated with, refer to their documentation for more information.
+
+    2. Create a payment token for the Account using the `/api/paymentGatewayIntegration/createToken` endpoint.
+
+    3. Create a stored payment method for the Account using the `/api/paymentMethod` endpoint.
+
+    ### Updating the stored payment method for an Account
+
+    1. Acquire the Account's new `tokenValue` from your integrated payment gateway.
+
+    2. Create a payment token for the Account using the `/api/paymentGatewayIntegration/createToken` endpoint.
+
+    3. Update the stored payment method for the Account using the `/api/paymentMethod/{id}` endpoint.
+
+    ### Deleting the stored payment method for an Account
+
+    1. Delete the stored payment method for the Account using the `/api/paymentMethod/{id}` endpoint.
+
+    </details>
+
+    <details>
+    <summary>Using Refer A Friend Bonuses</summary>
+
+    ### Applying Refer A Friend Bonuses and Add Ons
+
+
+    A range of endpoints are available that you can use to offer bonuses and add ons as part of Customer Management's Refer A Friend (RAF) functionality. This includes the ability to do the following:
+
+
+    - Retrieve a Customer's RAF code
+
+    - View a Customer's RAF history
+
+    - Validate an RAF code
+
+    - Apply RAF bonuses and add ons to new or active subscriptions
+
+
+    When using Customer Management's RAF functionality, both the referring customer (referrer) and the referred customer can be eligible to receive bonuses and add ons.
+
+
+    **Note:** Bonuses and add ons can include monetary rewards for both the referrer and referred customer as well as product offerings that can be added to a subscription.
+
+   
+    ### Applying RAF bonuses and add ons to a new subscription
+
+   
+    You apply RAF bonuses and add ons to a new subscriptions either directly when creating an Order, or by using Customer Management's Shopping Cart functionality. Depending on the scenario, you need to supply the applicable bonuses and add ons as well as the referring customer's RAF code.
+
+
+    #### Applying RAF bonuses and add ons directly when creating an Order
+
+
+    The process of applying RAF bonuses and add ons directly when creating an Order consists of the following steps:
+
+
+    1. Validating the referrer's RAF code using the `/api/raf/referrer/validation` endpoint.
+
+    2. Adding the RAF bonuses and add ons to the order before submitting it using the `/api/productOrder` endpoint.
+
+
+    #### Applying RAF bonuses and add ons when using Customer Management's Shopping Cart functionality
+
+  
+    The process of applying RAF bonuses and add ons when creating a new subscription consists of the following steps:
+
+
+    1. Creating a shopping cart with the subscription's details using the `/api/shoppingCart` endpoint.
+
+    2. Validating the referrer's RAF code using the `/api/raf/referrer/validation` endpoint.
+
+    3. Updating the shopping cart with the RAF bonuses and add ons using the `/api/shoppingCart/{id}` endpoint.
+
+    4. Submitting the order using the `/api/productOrder` endpoint.
+
+
+    ### Applying RAF bonuses and add ons to an active subscription
+
+    
+    The process of applying RAF bonuses and add ons to an active subscription consists of the following steps:
+
+
+    1. Validating the following details using the `/api/raf/validation` endpoint:
+
+        - Referring customer's details including their RAF code
+
+        - Referred customer's details
+
+    2. Appying the RAF bonuses and add ons using the `/api/raf/apply` endpoint.
+
+
+
+    ### Viewing the RAF History of a customer
+
+    
+    The `/api/raf/history/{id}` endpoint is used to return the referral history for a specific customer.
+
+
+    **Note:** Customer Management's RAF feature isn't available to all partners, for more information contact your Optiva Sales Integration partner.
+
+    </detail>
+    
+  version: 4.0.0
+tags: 
+  - name: Managing Parties, Accounts, and Customers
+    description: Series of API requests for Entry Management 
+  - name: Managing Subscriptions
+    description: Series of API requests for Subscription Management
+  - name: Managing Products and Orders
+    description: Series of API requests for Product and Order Management
+  - name: Managing Payment Tokens and Charges
+    description: Series of API requests for applying charges, managing Payment Schedules, and managing Payment Tokens
+  - name: Managing Payment Methods
+    description: Series of API requests for Payment Method Management
+  - name: Managing Offers and Promotions
+    description: Series of API requests for Offer and Promotion Management
+  - name: Managing Customer Cases
+    description: Series of API requests for Customer Case Management
+  - name: Optiva Use Only
+    description: Series of API requests used by Optiva Applications/Personnel
+paths:
+  /api/quickPrepaidBillingAccount:
+    $ref: ./paths/account/path-quickPrepaidBillingAccount.yml
+  /api/quickPrepaidBillingAccount/{id}:
+    $ref: ./paths/account/path-quickPrepaidBillingAccount-id.yml
+  /api/individual:
+    $ref: ./paths/individual/path-individual.yml
+  /api/individual/{id}:
+    $ref: ./paths/individual/path-individual-id.yml
+  /api/individual/identification/validate:
+    $ref: ./paths/individual/path-individual-identification-validate.yml
+  /api/partyInteraction:
+    $ref: ./paths/partyInteraction/path-partyInteraction.yml
+  /api/partyInteraction/{id}:
+    $ref: ./paths/partyInteraction/path-partyInteraction-id.yml
+  /api/billingAccount:
+    $ref: ./paths/account/path-billingAccount.yml
+  /api/billingAccount/{id}:
+    $ref: ./paths/account/path-billingAccount-id.yml
+  /api/billingAccount/{id}/supplementaryData:
+    $ref: ./paths/account/path-account-supplementary-data.yml
+  /api/account/{id}/note:
+    $ref: ./paths/notes/path-list-account-notes.yml
+  /api/account/note:
+    $ref: ./paths/notes/path-update-account-add-notes.yml
+  /api/detailedIdentifications:
+    $ref: ./paths/generalSupport/path-detailed-identifications.yml  
+  /api/customer:
+    $ref: ./paths/customer/path-customer.yml
+  /api/dashboard/customer/{id}:
+    $ref: ./paths/customer/path-dashboard-customer-id.yml
+  /api/customer/{id}:
+    $ref: ./paths/customer/path-customer-id.yml
+  /api/allEntity/{filter}:
+    $ref: ./paths/search/path-allEntitySearch-filter.yml
+  /api/subscription/voucherRecharge:
+    $ref: ./paths/voucher/path-update-subscription-recharge-voucher.yml
+  /api/subscription/{id}/pricePlan:
+    $ref: ./paths/subscription/path-subscription-price-plans.yml
+  /api/subscription/{id}/history:
+    $ref: ./paths/subscription/path-subscription-history.yml
+  /api/subscription/profile:
+    $ref: ./paths/subscription/path-subscription.yml
+  /api/subscription:
+    $ref: ./paths/subscription/path-list-subscription.yml
+  /api/subscription/type:
+    $ref: ./paths/subscription/path-list-subscription-types.yml
+  /api/subscription/balanceHistory:
+    $ref: ./paths/subscription/path-get-balanceHistory.yml
+  /api/subscription/bundleBalance:
+    $ref: ./paths/subscription/path-get-bundleBalances.yml
+  /api/subscription/balanceQuery:
+    $ref: ./paths/subscription/path-execute-subscription-balance-query.yml
+  /api/subscription/adjustment:
+    $ref: ./paths/subscription/path-subscription-adjustments.yml
+  /api/subscription/adjustment/{adjustmentId}:
+    $ref: ./paths/subscription/path-update-subscription-adjustments.yml
+  /api/mnp/eligibility:
+    $ref: ./paths/mnp/path-mnp.yml
+  /api/mobileNumberPortingType:  
+    $ref: ./paths/mobileNumber/path-portingType.yml
+  /api/resource:
+    $ref: ./paths/resourceQuery/path-resource.yml
+  /api/resource/{pattern}:
+    $ref: ./paths/resourceQuery/path-resource-id.yml
+  /api/resource/reserve:
+    $ref: ./paths/resourceQuery/path-resource-reserve.yml
+  /api/resource/cancel:
+    $ref: ./paths/resourceQuery/path-resource-cancel.yml
+  /api/refresh/provisioning:
+    $ref: ./paths/provisioning/path-refresh-provisioning.yml
+  /api/pin/generate:
+    $ref: ./paths/pin/path-generate-pin.yml
+  /api/pin:
+    $ref: ./paths/pin/path-delete-pin.yml
+  /api/pin/set:
+    $ref: ./paths/pin/path-set-pin.yml
+  /api/pin/reset:
+    $ref: ./paths/pin/path-reset-pin.yml
+  /api/pin/change:
+    $ref: ./paths/pin/path-change-pin.yml
+  /api/pin/verify:
+    $ref: ./paths/pin/path-verify-pin.yml
+  /api/callDetail:
+    $ref: ./paths/callDetails/path-callDetails.yml
+  /api/subscription/{id}/transaction:
+    $ref: ./paths/transaction/path-subscription-transactions.yml
+  /api/subscription/{id}/detailedSubscriptionTransaction:
+    $ref: ./paths/transaction/path-detailed-subscription-transactions.yml
+  /api/subscription/note:
+    $ref: ./paths/notes/path-list-subscription-notesV2.yml
+  /api/subscription/supplementaryData:
+    $ref: ./paths/subscription/path-subscription-supplementary-data.yml
+  /api/subscription/resetVoicemailPassword:
+    $ref: ./paths/subscription/path-subscription-reset-voicemail-password.yml
+  /api/confirmation:  
+    $ref: ./paths/confirmation/path-confirmation.yml
+  /api/confirmationDetail:  
+    $ref: ./paths/confirmation/path-confirmationDetail.yml
+  /api/category:
+    $ref: ./paths/productCatalog/path-category.yml
+  /api/simCategory:
+    $ref: ./paths/productCatalog/path-simcategory.yml
+  /api/msisdnGroup:
+    $ref: ./paths/productCatalog/path-msisdngroups.yml
+  /api/productOffering:
+    $ref: ./paths/productCatalog/path-priceplan.yml
+  /api/productOfferingFilters:
+    $ref: ./paths/productCatalog/path-productOffering-filters.yml
+  /api/productOffering/{id}:
+    $ref: ./paths/productCatalog/path-priceplan-id.yml
+  /api/productOffering/{id}/addOn:
+    $ref: ./paths/productCatalog/path-priceplan-addons.yml
+  /api/productOffering/{id}/selectableProducts:
+    $ref: ./paths/productCatalog/path-priceplan-selectableproducts.yml
+  /api/shoppingCart:
+    $ref: ./paths/productCatalog/path-shoppingCart.yml
+  /api/shoppingCart/{id}:
+    $ref: ./paths/productCatalog/path-shoppingCart-id.yml
+  /api/productOrder:
+    $ref: ./paths/productCatalog/path-order.yml
+  /api/productOrder/{id}:
+    $ref: ./paths/productCatalog/path-orders-id.yml
+  /api/productOrder/npg/{id}/status:
+    $ref: ./paths/productCatalog/path-order-npg-id.yml
+  /api/portOutOrder/{id}/status:
+    $ref: ./paths/productCatalog/path-portout-order.yml
+  /api/productOrder/cancel:
+    $ref: ./paths/productCatalog/path-order-cancel.yml
+  /api/productOrder/cancel/{id}:
+    $ref: ./paths/productCatalog/path-order-cancel-execution-with-reason.yml
+  /api/cardPackage/{id}:
+    $ref: ./paths/cardpackage/path-cardpackage-id.yml
+  /api/paymentGatewayIntegration/applyPaymentCharge:
+    $ref: ./paths/paymentGatewayIntegration/path-applyPaymentCharge.yml
+  /api/paymentGatewayIntegration/createSchedule:
+    $ref: ./paths/paymentGatewayIntegration/path-createSchedule.yml
+  /api/paymentGatewayIntegration/readSchedule:
+    $ref: ./paths/paymentGatewayIntegration/path-readSchedule.yml
+  /api/paymentGatewayIntegration/deleteSchedule:
+    $ref: ./paths/paymentGatewayIntegration/path-deleteSchedule.yml
+  /api/paymentGatewayIntegration/createToken:
+    $ref: ./paths/paymentGatewayIntegration/path-createToken.yml
+  /api/paymentGatewayIntegration/updateToken:
+    $ref: ./paths/paymentGatewayIntegration/path-updateToken.yml
+  /api/paymentGatewayIntegration/readToken:
+    $ref: ./paths/paymentGatewayIntegration/path-readToken.yml
+  /api/paymentGatewayIntegration/deleteToken:
+    $ref: ./paths/paymentGatewayIntegration/path-deleteToken.yml
+  /api/paymentMethod:
+    $ref: ./paths/paymentMethod/path-paymentMethod.yml
+  /api/paymentMethod/{id}:
+    $ref: ./paths/paymentMethod/path-paymentMethod-id.yml
+  /api/voucher:
+    $ref: ./paths/voucher/path-validateVoucher.yml
+  /api/telus/createPaymentSession:
+    $ref: ./paths/payment-gw/telus/paymentClientManagement/path-createPaymentSession.yml
+  /api/bundleCategory:
+    $ref: ./paths/bundleCategory/path-bundleCategory.yml
+  /api/campaign:
+    $ref: ./paths/campaign/path-campaign.yml
+  /api/campaign/{id}:
+    $ref: ./paths/campaign/path-campaign-id.yml
+  /api/validatePromotion:
+    $ref: ./paths/promotion/path-validate-promotion.yml
+  /api/raf/apply:
+    $ref: ./paths/referAFriend/path-raf-apply.yml
+  /api/raf/referralCode/{id}:
+    $ref: ./paths/referAFriend/path-raf-id.yml
+  /api/raf/referralCode:
+    $ref: ./paths/referAFriend/path-raf.yml
+  /api/raf/history/{id}:
+    $ref: ./paths/referAFriend/path-raf-history-id.yml
+  /api/raf/validation:
+    $ref: ./paths/referAFriend/path-raf-validation.yml
+  /api/case/search:
+    $ref: ./paths/case/path-case-search.yml
+  /api/customerUniqueNumber:  
+    $ref: ./paths/cun/path-customerUniqueNumber.yml
+  /api/serviceProvider:
+    $ref: ./paths/serviceprovider/path-service-provider.yml
+  /api/admin/entity/index:
+    $ref: ./paths/admin/path-admin-entity.yml
+  /api/hub:
+    $ref: ./paths/hub/path-hub.yml
+  /api/hub/{id}:
+    $ref: ./paths/hub/path-hub-id.yml
+  /api/bulkupload/fileUploadStatus:
+    $ref: ./paths/objectStorage/path-getFileUploadStatus.yml
+  /api/raf/callback:
+    $ref: ./paths/referAFriend/path-raf-callback.yml
+  /api/confirmation/{id}:  
+    $ref: ./paths/confirmation/path-confirmation-id.yml
+  /api/confirmationDetail/{id}:  
+    $ref: ./paths/confirmation/path-confirmationDetail-id.yml
+  /api/retailPromotion:  
+    $ref: ./paths/retailPromotion/path-retailPromotion.yml
+  /api/retailPromotion/{id}:
+    $ref: ./paths/retailPromotion/path-retailPromotion-id.yml
+
+servers:
+  - url: https://ingress.product.cm.portal.obp/auth
+    description: DEV,QA,DEV2 Keycloak Auth server
+  - url: https://ingress-nft.product.cm.portal.obp/auth
+    description: NFT, MIG Keycloak Auth server
+  - url: http://localhost:5001/
+    description: Local API Gateway server
+  - url: http://apigw-dev.product.cm.portal.obp:5001/
+    description: Dev API Gateway server
+  - url: http://apigw-qa.product.cm.portal.obp:5001/
+    description: QA API Gateway server
+  - url: https://ingress-stg.product.cm.portal.obp/
+    description: STG Auth / API Gateway server
+  - url: https://ingress.product.cm.portal.obp
+    description: DEV2 API Gateway server
+  - url: https://ingress-nft.product.cm.portal.obp
+    description: NFT API Gateway server
+  - url: https://ingress-mig.product.cm.portal.obp
+    description: MIG API Gateway server
+components:
+  securitySchemes:
+    oauth:
+      type: oauth2
+      description: This API uses OAuth 2 with the implicit grant flow. [More info](https://api.example.com/docs/auth)
+      flows:
+        authorizationCode:
+          authorizationUrl: auth/realms/telus/protocol/openid-connect/auth
+          tokenUrl: auth/realms/telus/protocol/openid-connect/token
+  schemas:
+    Account:
+      $ref: ./schema-definition/Account.yml#/Account
+    AccountNotes:
+      $ref: ./schema-definition/AccountNotes.yml#/AccountNotes
+    AllEntitiesSearch:
+      $ref: ./schema-definition/CommonEntities.yml#/AllEntitiesSearch
+    SubscriptionNotes:
+      $ref: ./schema-definition/AccountNotes.yml#/SubscriptionNotes
+    AccountBalance:
+      $ref: ./schema-definition/Account.yml#/AccountBalance
+    AccountRef:
+      $ref: ./schema-definition/Account.yml#/AccountRef
+    AccountRelationship:
+      $ref: ./schema-definition/Account.yml#/AccountRelationship
+    AccountTaxExemption:
+      $ref: ./schema-definition/Account.yml#/AccountTaxExemption
+    SubAccount:
+      $ref: ./schema-definition/Account.yml#/SubAccount
+    UpdateAccountStateResponse:
+      $ref: ./schema-definition/Account.yml#/UpdateAccountStateResponse
+    AccountCreate:
+      $ref: ./schema-definition/Account.yml#/UpdateAccountStateResponse
+    AccountUpdate:
+      $ref: ./schema-definition/Account.yml#/AccountUpdate
+    UpdateAccountState:
+      $ref: ./schema-definition/Account.yml#/UpdateAccountState
+    SubAccountsResponse:
+      $ref: ./schema-definition/Account.yml#/SubAccountsResponse
+    AccountUpdateResponse:
+      $ref: ./schema-definition/Account.yml#/AccountUpdateResponse
+    AccumulatedBalance:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AccumulatedBalance
+    Action:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/Action
+    ActionStatusType:
+      $ref: ./schema-definition/Account.yml#/ActionStatusType
+    Addressable:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/Addressable
+    AdjustBalance:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalance
+    AdjustBalanceCancelEvent:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceCancelEvent
+    AdjustBalanceCancelEventPayload:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceCancelEventPayload
+    AdjustBalanceCreate:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceCreate
+    AdjustBalanceCreateEvent:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceCreateEvent
+    AdjustBalanceCreateEventPayload:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceCreateEventPayload
+    AdjustBalanceFailureEvent:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceFailureEvent
+    AdjustBalanceFailureEventPayload:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceFailureEventPayload
+    AdjustBalanceUpdate:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustBalanceUpdate
+    AdjustType:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/AdjustType
+    BalanceActionHistory:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/BalanceActionHistory
+    ApplyPaymentCharge:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/ApplyPaymentCharge
+    ApplyPaymentChargeResponse:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/ApplyPaymentChargeResponse
+    AgreementRef:
+      $ref: ./schema-definition/CommonEntities.yml#/AgreementRef
+    Attachment:
+      $ref: ./schema-definition/CommonEntities.yml#/Attachment
+    AttachmentRef:
+      $ref: ./schema-definition/CommonEntities.yml#/AttachmentRef
+    AttachmentRefOrValue:
+      $ref: ./schema-definition/CommonEntities.yml#/AttachmentRefOrValue
+    BankAccountDebit:
+      $ref: ./schema-definition/BankAndBilling.yml#/BankAccountDebit
+    BankAccountTransfer:
+      $ref: ./schema-definition/BankAndBilling.yml#/BankAccountTransfer
+    BankCard:
+      $ref: ./schema-definition/BankAndBilling.yml#/BankCard
+    BillFormat:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillFormat
+    BillFormatCreate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillFormatCreate
+    BillFormatRef:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillFormatRef
+    BillFormatRefOrValue:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillFormatRefOrValue
+    BillFormatUpdate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillFormatUpdate
+    BillPresentationMedia:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillPresentationMedia
+    BillPresentationMediaCreate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillPresentationMediaCreate
+    BillPresentationMediaRef:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillPresentationMediaRef
+    BillPresentationMediaRefOrValue:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillPresentationMediaRefOrValue
+    BillPresentationMediaUpdate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillPresentationMediaUpdate
+    BillStructure:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillStructure
+    BillingAccount:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccount
+    BillingAccountAttributeValueChangeEvent:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccountAttributeValueChangeEvent
+    BillingAccountAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccountAttributeValueChangeEventPayload
+    BillingAccountCreate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccountCreate
+    BillingAccountStateChangeEvent:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccountStateChangeEvent
+    BillingAccountStateChangeEventPayload:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccountStateChangeEventPayload
+    BillingAccountUpdate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingAccountUpdate
+    BillingCycleSpecification:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingCycleSpecification
+    BillingCycleSpecificationCreate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingCycleSpecificationCreate
+    BillingCycleSpecificationRef:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingCycleSpecificationRef
+    BillingCycleSpecificationRefOrValue:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingCycleSpecificationRefOrValue
+    BillingCycleSpecificationUpdate:
+      $ref: ./schema-definition/BankAndBilling.yml#/BillingCycleSpecificationUpdate
+    Bucket:
+      $ref: ./schema-definition/Bucket.yml#/Bucket
+    BucketCreate:
+      $ref: ./schema-definition/Bucket.yml#/BucketCreate
+    BucketCreateEvent:
+      $ref: ./schema-definition/Bucket.yml#/BucketCreateEvent
+    BucketCreateEventPayload:
+      $ref: ./schema-definition/Bucket.yml#/BucketCreateEventPayload
+    BucketDeleteEvent:
+      $ref: ./schema-definition/Bucket.yml#/BucketDeleteEvent
+    BucketDeleteEventPayload:
+      $ref: ./schema-definition/Bucket.yml#/BucketDeleteEventPayload
+    BucketRef:
+      $ref: ./schema-definition/Bucket.yml#/BucketRef
+    BucketStatusType:
+      $ref: ./schema-definition/Bucket.yml#/BucketStatusType
+    campaignRequestbody:
+      $ref: ./schema-definition/Campaign.yml#/CampaignRequestBody
+    campaignResponse:
+      $ref: ./schema-definition/Campaign.yml#/CampaignResponse
+    CartResponse:
+      $ref: ./schema-definition/ShoppingCart.yml#/CartResponse
+    CartSearch:
+      $ref: ./schema-definition/ShoppingCart.yml#/CartSearch
+    Cash:
+      $ref: ./schema-definition/CommonEntities.yml#/Cash
+    ChannelRef:
+      $ref: ./schema-definition/CommonEntities.yml#/ChannelRef
+    Characteristic:
+      $ref: ./schema-definition/CommonEntities.yml#/Characteristic
+    Check:
+      $ref: ./schema-definition/CommonEntities.yml#/Check
+    Contact:
+      $ref: ./schema-definition/CommonEntities.yml#/Contact
+    ContactMedium:
+      $ref: ./schema-definition/CommonEntities.yml#/ContactMedium
+    CostOwnerType:
+      $ref: ./schema-definition/CommonEntities.yml#/CostOwnerType
+    CreditProfile:
+      $ref: ./schema-definition/CommonEntities.yml#/CreditProfile
+    Customer:
+      $ref: ./schema-definition/Customer.yml#/Customer
+    CustomerAttributeValueChangeEvent:
+      $ref: ./schema-definition/Customer.yml#/CustomerAttributeValueChangeEvent
+    CustomerAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Customer.yml#/CustomerAttributeValueChangeEventPayload
+    CustomerCreate:
+      $ref: ./schema-definition/Customer.yml#/CustomerCreate
+    CustomerCreateEvent:
+      $ref: ./schema-definition/Customer.yml#/CustomerCreateEvent
+    CustomerCreateEventPayload:
+      $ref: ./schema-definition/Customer.yml#/CustomerCreateEventPayload
+    CustomerDeleteEvent:
+      $ref: ./schema-definition/Customer.yml#/CustomerDeleteEvent
+    CustomerDeleteEventPayload:
+      $ref: ./schema-definition/Customer.yml#/CustomerDeleteEventPayload
+    CustomerStateChangeEvent:
+      $ref: ./schema-definition/Customer.yml#/CustomerStateChangeEvent
+    CustomerStateChangeEventPayload:
+      $ref: ./schema-definition/Customer.yml#/CustomerStateChangeEventPayload
+    CustomerUpdate:
+      $ref: ./schema-definition/Customer.yml#/CustomerUpdate
+    CustomerDashboard:
+      $ref: ./schema-definition/Customer.yml#/CustomerDashboard
+    CustomerDashboardProperties:
+      $ref: ./schema-definition/Customer.yml#/CustomerDashboardProperties
+    CunCreate:
+      $ref: ./schema-definition/CustomerUniqueNumber.yml#/CustomerUniqueNumberBody
+    CunRespone:
+      $ref: ./schema-definition/CustomerUniqueNumber.yml#/CustomerUniqueNumberResponse
+    DetailedTransaction:
+      $ref: ./schema-definition/DetailedTransaction.yml#/DetailedTransaction
+    DeleteTokenResponse:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/DeleteTokenResponse
+    DigitalWallet:
+      $ref: ./schema-definition/CommonEntities.yml#/DigitalWallet
+    DirectDebit:
+      $ref: ./schema-definition/CommonEntities.yml#/DirectDebit
+    Disability:
+      $ref: ./schema-definition/CommonEntities.yml#/Disability
+    Entity:
+      $ref: ./schema-definition/CommonEntities.yml#/Entity
+    EntityRef:
+      $ref: ./schema-definition/CommonEntities.yml#/EntityRef
+    Error:
+      $ref: ./schema-definition/CommonEntities.yml#/Error
+    EventSubscription:
+      $ref: ./schema-definition/CommonEntities.yml#/EventSubscription
+    EventSubscriptionInput:
+      $ref: ./schema-definition/CommonEntities.yml#/EventSubscriptionInput
+    Extensible:
+      $ref: ./schema-definition/CommonEntities.yml#/Extensible
+    ExternalReference:
+      $ref: ./schema-definition/CommonEntities.yml#/ExternalReference
+    FinancialAccount:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccount
+    FinancialAccountAttributeValueChangeEvent:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountAttributeValueChangeEvent
+    FinancialAccountAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountAttributeValueChangeEventPayload
+    FinancialAccountCreate:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountCreate
+    FinancialAccountCreateEvent:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountCreateEvent
+    FinancialAccountCreateEventPayload:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountCreateEventPayload
+    FinancialAccountDeleteEvent:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountDeleteEvent
+    FinancialAccountDeleteEventPayload:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountDeleteEventPayload
+    FinancialAccountRef:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountRef
+    FinancialAccountStateChangeEvent:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountStateChangeEvent
+    FinancialAccountStateChangeEventPayload:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountStateChangeEventPayload
+    FinancialAccountUpdate:
+      $ref: ./schema-definition/FinancialAccount.yml#/FinancialAccountUpdate
+    GenericParameters:
+      $ref: ./schema-definition/CommonEntities.yml#/GenericParameters
+    Individual:
+      $ref: ./schema-definition/Individual.yml#/Individual
+    IndividualAttributeValueChangeEvent:
+      $ref: ./schema-definition/Individual.yml#/IndividualAttributeValueChangeEvent
+    IndividualAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Individual.yml#/IndividualAttributeValueChangeEventPayload
+    IndividualCreate:
+      $ref: ./schema-definition/Individual.yml#/IndividualCreate
+    IndividualCreateEvent:
+      $ref: ./schema-definition/Individual.yml#/IndividualCreateEvent
+    IndividualCreateEventPayload:
+      $ref: ./schema-definition/Individual.yml#/IndividualCreateEventPayload
+    IndividualDeleteEvent:
+      $ref: ./schema-definition/Individual.yml#/IndividualDeleteEvent
+    IndividualDeleteEventPayload:
+      $ref: ./schema-definition/Individual.yml#/IndividualDeleteEventPayload
+    IndividualIdentification:
+      $ref: ./schema-definition/Individual.yml#/IndividualIdentification
+    IndividualStateChangeEvent:
+      $ref: ./schema-definition/Individual.yml#/IndividualStateChangeEvent
+    IndividualStateChangeEventPayload:
+      $ref: ./schema-definition/Individual.yml#/IndividualStateChangeEventPayload
+    IndividualStateType:
+      $ref: ./schema-definition/Individual.yml#/IndividualStateType
+    IndividualUpdate:
+      $ref: ./schema-definition/Individual.yml#/IndividualUpdate
+    LanguageAbility:
+      $ref: ./schema-definition/CommonEntities.yml#/LanguageAbility
+    ListSubscription:
+      $ref: ./schema-definition/ListSubscription.yml#/ListSubscription
+    LogicalResourceRef:
+      $ref: ./schema-definition/CommonEntities.yml#/LogicalResourceRef
+    MediumCharacteristic:
+      $ref: ./schema-definition/CommonEntities.yml#/MediumCharacteristic
+    Money:
+      $ref: ./schema-definition/CommonEntities.yml#/Money
+    Msisdns:
+      $ref: ./schema-definition/MobileNumbers.yml#/Msisdns
+    MsisdnGroups:
+      $ref: ./schema-definition/MsisdnGroups.yml#/MsisdnGroup
+    OrderCreate:
+      $ref: ./schema-definition/Orders.yml#/OrderCreate
+    OrderResponse:
+      $ref: ./schema-definition/Orders.yml#/OrderResponse
+    OrderSearch:
+      $ref: ./schema-definition/Orders.yml#/OrderSearch
+    Organization:
+      $ref: ./schema-definition/Organization.yml#/Organization
+    OrganizationAttributeValueChangeEvent:
+      $ref: ./schema-definition/Organization.yml#/OrganizationAttributeValueChangeEvent
+    OrganizationAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Organization.yml#/OrganizationAttributeValueChangeEventPayload
+    OrganizationChildRelationship:
+      $ref: ./schema-definition/Organization.yml#/OrganizationChildRelationship
+    OrganizationCreate:
+      $ref: ./schema-definition/Organization.yml#/OrganizationCreate
+    OrganizationCreateEvent:
+      $ref: ./schema-definition/Organization.yml#/OrganizationCreateEvent
+    OrganizationCreateEventPayload:
+      $ref: ./schema-definition/Organization.yml#/OrganizationCreateEventPayload
+    OrganizationDeleteEvent:
+      $ref: ./schema-definition/Organization.yml#/OrganizationDeleteEvent
+    OrganizationDeleteEventPayload:
+      $ref: ./schema-definition/Organization.yml#/OrganizationDeleteEventPayload
+    OrganizationIdentification:
+      $ref: ./schema-definition/Organization.yml#/OrganizationIdentification
+    OrganizationParentRelationship:
+      $ref: ./schema-definition/Organization.yml#/OrganizationParentRelationship
+    OrganizationRef:
+      $ref: ./schema-definition/Organization.yml#/OrganizationRef
+    OrganizationStateChangeEvent:
+      $ref: ./schema-definition/Organization.yml#/OrganizationStateChangeEvent
+    OrganizationStateChangeEventPayload:
+      $ref: ./schema-definition/Organization.yml#/OrganizationStateChangeEventPayload
+    OrganizationStateType:
+      $ref: ./schema-definition/Organization.yml#/OrganizationStateType
+    OrganizationUpdate:
+      $ref: ./schema-definition/Organization.yml#/OrganizationUpdate
+    OtherNameIndividual:
+      $ref: ./schema-definition/Individual.yml#/OtherNameIndividual
+    OtherNameOrganization:
+      $ref: ./schema-definition/Organization.yml#/OtherNameOrganization
+    Party:
+      $ref: ./schema-definition/Party.yml#/Party
+    PartyAccount:
+      $ref: ./schema-definition/Party.yml#/PartyAccount
+    PartyAccountAttributeValueChangeEvent:
+      $ref: ./schema-definition/Party.yml#/PartyAccountAttributeValueChangeEvent
+    PartyAccountAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Party.yml#/PartyAccountAttributeValueChangeEventPayload
+    PartyAccountCreate:
+      $ref: ./schema-definition/Party.yml#/PartyAccountCreate
+    PartyAccountRef:
+      $ref: ./schema-definition/Party.yml#/PartyAccountRef
+    PartyAccountStateChangeEvent:
+      $ref: ./schema-definition/Party.yml#/PartyAccountStateChangeEvent
+    PartyAccountStateChangeEventPayload:
+      $ref: ./schema-definition/Party.yml#/PartyAccountStateChangeEventPayload
+    PartyAccountUpdate:
+      $ref: ./schema-definition/Party.yml#/PartyAccountUpdate
+    PartyCreditProfile:
+      $ref: ./schema-definition/Party.yml#/PartyCreditProfile
+    PartyRole:
+      $ref: ./schema-definition/Party.yml#/PartyRole
+    PartyRoleAttributeValueChangeEvent:
+      $ref: ./schema-definition/Party.yml#/PartyRoleAttributeValueChangeEvent
+    PartyRoleAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Party.yml#/PartyRoleAttributeValueChangeEventPayload
+    PartyRoleCreate:
+      $ref: ./schema-definition/Party.yml#/PartyRoleCreate
+    PartyRoleCreateEvent:
+      $ref: ./schema-definition/Party.yml#/PartyRoleCreateEvent
+    PartyRoleCreateEventPayload:
+      $ref: ./schema-definition/Party.yml#/PartyRoleCreateEventPayload
+    PartyRoleDeleteEvent:
+      $ref: ./schema-definition/Party.yml#/PartyRoleDeleteEvent
+    PartyRoleDeleteEventPayload:
+      $ref: ./schema-definition/Party.yml#/PartyRoleDeleteEventPayload
+    PartyRoleStateChangeEvent:
+      $ref: ./schema-definition/Party.yml#/PartyRoleStateChangeEvent
+    PartyRoleStateChangeEventPayload:
+      $ref: ./schema-definition/Party.yml#/PartyRoleStateChangeEventPayload
+    PartyRoleUpdate:
+      $ref: ./schema-definition/Party.yml#/PartyRoleUpdate
+    PaymentGateway:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/CreatePaymentSchedule
+    PaymentGatewayToken:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/TokenInfo
+    PaymentMethod:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethod
+    PaymentMethodAttributeValueChangeEvent:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodAttributeValueChangeEvent
+    PaymentMethodAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodAttributeValueChangeEventPayload
+    PaymentMethodCreate:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodCreate
+    PaymentMethodCreateEvent:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodCreateEvent
+    PaymentMethodCreateEventPayload:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodCreateEventPayload
+    PaymentMethodDeleteEvent:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodDeleteEvent
+    PaymentMethodDeleteEventPayload:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodDeleteEventPayload
+    PaymentMethodRef:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodRef
+    PaymentMethodStatusChangeEvent:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodStatusChangeEvent
+    PaymentMethodStatusChangeEventPayload:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodStatusChangeEventPayload
+    PaymentMethodType:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodType
+    PaymentMethodUpdate:
+      $ref: ./schema-definition/Payment.yml#/PaymentMethodUpdate
+    PaymentPlan:
+      $ref: ./schema-definition/Payment.yml#/PaymentPlan
+    PricePlanById:
+      $ref: ./schema-definition/PricePlans.yml#/PricePlanById
+    PricePlans:
+      $ref: ./schema-definition/PricePlans.yml#/PricePlans
+    ProductRef:
+      $ref: ./schema-definition/CommonEntities.yml#/ProductRef
+    Quantity:
+      $ref: ./schema-definition/CommonEntities.yml#/Quantity
+    QueryParamType:
+      $ref: ./schema-definition/CommonEntities.yml#/QueryParamType
+    ReadToken:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/ReadToken
+    ReadTokenResponse:
+      $ref: ./schema-definition/PaymentGatewayIntegration.yml#/ReadTokenResponse
+    RecurringPeriodType:
+      $ref: ./schema-definition/CommonEntities.yml#/RecurringPeriodType
+    RelatedParty:
+      $ref: ./schema-definition/Party.yml#/RelatedParty
+    RelatedPlace:
+      $ref: ./schema-definition/Party.yml#/RelatedPlace
+    RelatedTopupBalance:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/RelatedTopupBalance
+    ReserveBalance:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalance
+    ReserveBalanceCancelEvent:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceCancelEvent
+    ReserveBalanceCancelEventPayload:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceCancelEventPayload
+    ReserveBalanceCreate:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceCreate
+    ReserveBalanceCreateEvent:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceCreateEvent
+    ReserveBalanceCreateEventPayload:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceCreateEventPayload
+    ReserveBalanceFailureEvent:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceFailureEvent
+    ReserveBalanceFailureEventPayload:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceFailureEventPayload
+    ReserveBalanceUpdate:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/ReserveBalanceUpdate
+    SettlementAccount:
+      $ref: ./schema-definition/Account.yml#/SettlementAccount
+    SettlementAccountAttributeValueChangeEvent:
+      $ref: ./schema-definition/Account.yml#/SettlementAccountAttributeValueChangeEvent
+    SettlementAccountAttributeValueChangeEventPayload:
+      $ref: ./schema-definition/Account.yml#/SettlementAccountAttributeValueChangeEventPayload
+    SettlementAccountCreate:
+      $ref: ./schema-definition/Account.yml#/SettlementAccountCreate
+    SettlementAccountStateChangeEvent:
+      $ref: ./schema-definition/Account.yml#/SettlementAccountStateChangeEvent
+    SettlementAccountStateChangeEventPayload:
+      $ref: ./schema-definition/Account.yml#/SettlementAccountStateChangeEventPayload
+    SettlementAccountUpdate:
+      $ref: ./schema-definition/Account.yml#/SettlementAccountUpdate
+    ShoppingCartCreate:
+      $ref: ./schema-definition/ShoppingCart.yml#/ShoppingCartCreate
+    SimCategory:
+      $ref: ./schema-definition/SimCategories.yml#/SimCategory
+    Skill:
+      $ref: ./schema-definition/CommonEntities.yml#/Skill
+    Subscription:
+      $ref: ./schema-definition/Subscription.yml#/Subscription
+    SubscriptionBalanceHistory:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/SubscriptionBalanceHistory
+    SubscriptionBundleBalances:
+      $ref: ./schema-definition/BalanceAndAdjustment.yml#/SubscriptionBundleBalances
+    SubscriptionBalanceQuery:
+      $ref: ./schema-definition/SubscriptionBalanceQuery.yml#/SubscriptionBalanceQuery
+    Success:
+      $ref: ./schema-definition/CommonEntities.yml#/Success
+    TaxDefinition:
+      $ref: ./schema-definition/CommonEntities.yml#/TaxDefinition
+    TaxExemptionCertificate:
+      $ref: ./schema-definition/CommonEntities.yml#/TaxExemptionCertificate
+    TimePeriod:
+      $ref: ./schema-definition/CommonEntities.yml#/TimePeriod
+    TokenizedCard:
+      $ref: ./schema-definition/CommonEntities.yml#/TokenizedCard
+    TopupBalance:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalance
+    TopupBalanceCancelEvent:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceCancelEvent
+    TopupBalanceCancelEventPayload:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceCancelEventPayload
+    TopupBalanceCreate:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceCreate
+    TopupBalanceCreateEvent:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceCreateEvent
+    TopupBalanceCreateEventPayload:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceCreateEventPayload
+    TopupBalanceFailureEvent:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceFailureEvent
+    TopupBalanceFailureEventPayload:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceFailureEventPayload
+    TopupBalanceUpdate:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TopupBalanceUpdate
+    Transaction:
+      $ref: ./schema-definition/Transaction.yml#/Transaction
+    TransferBalance:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalance
+    TransferBalanceCancelEvent:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceCancelEvent
+    TransferBalanceCancelEventPayload:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceCancelEventPayload
+    TransferBalanceCreate:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceCreate
+    TransferBalanceCreateEvent:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceCreateEvent
+    TransferBalanceCreateEventPayload:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceCreateEventPayload
+    TransferBalanceFailureEvent:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceFailureEvent
+    TransferBalanceFailureEventPayload:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceFailureEventPayload
+    TransferBalanceUpdate:
+      $ref: ./schema-definition/TopupAndTransferBalance.yml#/TransferBalanceUpdate
+    UsageType:
+      $ref: ./schema-definition/CommonEntities.yml#/UsageType
+    Voucher:
+      $ref: ./schema-definition/CommonEntities.yml#/Voucher
+    RAF:
+      $ref: ./schema-definition/ReferAFriend.yml#/RAF
+    RafHistory:
+      $ref: ./schema-definition/ReferAFriend.yml#/RafHistory
+    ValidationResponse:
+      $ref: ./schema-definition/ReferAFriend.yml#/ValidationResponse
+    RafValidate:
+      $ref: ./schema-definition/ReferAFriend.yml#/RafValidate
+    PaymentGW_Telus_AccountRef:
+      $ref: ./schema-definition/payment-gw/telus/PaymentClientManagement.yml#/AccountRef
+    PaymentGW_Telus_CreateSessionRequest:
+      $ref: ./schema-definition/payment-gw/telus/PaymentClientManagement.yml#/CreateSessionRequest
+    PaymentGW_Telus_PaymentSession:
+      $ref: ./schema-definition/payment-gw/telus/PaymentClientManagement.yml#/PaymentSession
+    PaymentGW_Telus_RelatedParty:
+      $ref: ./schema-definition/payment-gw/telus/PaymentClientManagement.yml#/RelatedParty
+    PartyInteraction:
+      $ref: ./schema-definition/PartyInteraction.yml#/PartyInteraction
+    PartyInteractionCreate:
+      $ref: ./schema-definition/PartyInteraction.yml#/PartyInteractionCreate
+    PartyInteractionUpdate:
+      $ref: ./schema-definition/PartyInteraction.yml#/PartyInteractionUpdate
+    MnpCheck:
+      $ref: ./schema-definition/MnpEligibility.yml#/MnpCheck
+    MnpResponse:
+      $ref: ./schema-definition/MnpEligibility.yml#/MnpResponse
+    RefreshProvisioning:
+      $ref: ./schema-definition/RefreshProvisioning.yml#/RefreshProvisioning
+    ProvisioningResponse:
+      $ref: ./schema-definition/RefreshProvisioning.yml#/ProvisioningResponse
+
