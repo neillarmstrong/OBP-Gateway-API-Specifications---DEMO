@@ -5,14 +5,6 @@
 ** <<TMF Certified Endpoints>>
 * <<Getting Started>>
 ** <<Introduction to Keycloak>>
-** <<Keycloak Configuration Overview>>
-* <<Configuring Keycloak for User Authentication>>
-** <<Identifying the Keycloak Admin Account>>
-** <<Creating a Keycloak Realm>>
-** <<Creating a Keycloak User>>
-** <<Creating Keycloak Client Realm Roles for Interacting with the Customer Management Database>>
-** <<Creating a Keycloak User Account for Interacting with the Customer Management Database>>
-** <<Creating a Client and Users for API Gateway Access>>
 * <<Request Sequencing for Common Use Cases>>
 ** <<Provisioning a New Subscriber>>
 ** <<Porting Mobile Numbers>>
