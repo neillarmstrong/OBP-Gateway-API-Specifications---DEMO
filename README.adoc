@@ -347,14 +347,12 @@ The following entries can be managed using the requests in this section:
 
 |Viewing the details of a specific Customer
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/customer/{id}_
-|GET
+|1. GET _/api/customer/{id}_
 |To retrieve the _id_ for a specific Customer, send a GET request to the _/api/customer_ endpoint
 
 |Viewing a Customer's dashboard
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/dashboard/customer/{id}_
-|GET
+|1. GET _/api/dashboard/customer/{id}_
 |To retrieve the _id_ for a specific Customer, send a GET request to the _/api/customer_ endpoint
 
 |Partially editing a Customer
