@@ -1,4 +1,4 @@
-= Integrating with Optiva's API Gateway
+= Integrating with OBP's API Gateway
 
 == Table of Contents
 * <<Overview>>
@@ -15,7 +15,7 @@
 ** <<Creating a Client and Users for API Gateway Access>>
 * <<Request Sequencing for Common Use Cases>>
 ** <<Provisioning a New Subscriber>>
-** <<Mobile Number Porting>>
+** <<Porting Mobile Numbers>>
 ** <<Managing Entries>>
 ** <<Managing Party Interactions>>
 ** <<Adding Notes to Accounts and Subscriptions>>
@@ -24,32 +24,33 @@
 ** <<Using Refer a Friend Bonuses>>
 ** <<Viewing Subscription Information>>
 ** <<Managing Subscription Adjustments>>
-** <<Adding Product Offerings or Add Ons to a Subscription>>
-** <<Removing Product Offerings or Add Ons from a Subscription>>
-** <<Blocking a SIM>>
+** <<Adding or Removing Product Offerings or Add Ons to or from a Subscription>>
 ** <<Adding Credit to a Subscription>>
 ** <<Managing Subscribers' PINs>>
 ** <<Activating a SIM>>
 ** <<Changing a Payment Plan or Subscribing to a new Product Offering or Add On>>
 
 == Overview
-Optiva's API gateway enables integrators to leverage the power of Optiva's BSS and Customer Management solutions with third-party applications.
+Optiva's OBP API gateway enables integrators to leverage the power of OBP with third-party applications.
 
-Optiva's API gateway has the three following API Specifications:
+OBP's API gateway consists of the three following API Specifications:
 
-* *cmsapigw-swagger -* Optiva's Customer Management API, which includes a series of requests that allow third-party applications to offer the functionality of Optiva's Customer Management Portal. 
+* *cmsapigw-swagger -* Customer Management API, which includes a series of requests that allow third-party applications to manage the life cycle of a telecomms subcscriber. 
 
-* *obp-rtr-apigw -* Optiva's BSS API (REST to REST), which includes a series of requests to interact with Optiva's BSS.   
+* *obp-rtr-apigw -* OBP API (REST to REST), which includes a series of requests to interact with OBP.   
 
-* *obp-rts-apigw -* Optiva's BSS API (REST to SOAP), which includes a series of requests to interact with Optiva's BSS. 
+* *obp-rts-apigw -* OBP API (REST to SOAP), which includes a series of requests to interact with OBP. 
 
-Optiva's API leverages endpoints that are goal-oriented and that can be used either individually or as part of a more complex workflow.
+OBP's API leverages endpoints that are goal-oriented and that can be used either individually or as part of a more complex workflow.
 
-*Note:* Optiva's API specifications are holistic and include both requests that can be integrated against by third parties as well as requests that are only for Optiva's use.
+[NOTE]
+====
+OBP's API specifications are holistic and include both requests that can be integrated against by third parties as well as requests that are only for Optiva's use.
+====
 
 === TMF Certified Endpoints
 
-Optiva's API gateway has been created leveraging TMF specifications for requests and responses. The following endpoints are TMF certified:
+OBP's API gateway has been created leveraging TMF specifications for requests and responses. The following endpoints are TMF certified:
 
 ==== Customer Management API
 
@@ -63,7 +64,7 @@ Optiva's API gateway has been created leveraging TMF specifications for requests
 |GET
 |TMF629
 
-|_/api/customer_
+|
 |POST
 |TMF629
 
@@ -71,11 +72,11 @@ Optiva's API gateway has been created leveraging TMF specifications for requests
 |GET
 |TMF629
 
-|_/api/customer/{id}_
+|
 |DELETE
 |TMF629
 
-|_/api/customer/{id}_
+|
 |PATCH
 |TMF629
 
@@ -83,7 +84,7 @@ Optiva's API gateway has been created leveraging TMF specifications for requests
 |GET
 |TMF632
 
-|_/api/individual_
+|
 |POST
 |TMF632
 
@@ -91,445 +92,46 @@ Optiva's API gateway has been created leveraging TMF specifications for requests
 |GET
 |TMF632
 
-|_/api/individual/{id}_
+|
 |DELETE
 |TMF632
 
-|_/api/individual/{id}_
+|
 |PATCH
 |TMF632
 |===
 
 == Getting Started
 
-Optiva's API gateway uses Keycloak for authentication of requests.
+OBP's API gateway uses Keycloak for authentication of requests.
 
 === Introduction to Keycloak
 
-https://www.keycloak.org/[Keycloak] is used to provide the identity management module for secure access between applications within OBP.
+https://www.keycloak.org/[Keycloak] is used to provide the identity management module for secure access between external applications and OBP.
 
-Keycloak provides Single Sign-On (SSO) capability, Identity Brokering, User Federation, and Authorization Services. Keycloak supports external IDPs such as LDAP or ADP via User Federation and SSO redirect for OIDC & SAML logins via Identity Brokering.
+Keycloak provides Single Sign-On (SSO) capability, Identity Brokering, User Federation, and Authorization Services. Keycloak supports external identity providers (IDPs) such as LDAP or ADP via User Federation and SSO redirect for OIDC & SAML logins via Identity Brokering.
 
-A Keycloak instance is deployed into the *Infra* cluster as part of the OBP deployment pipeline.
+[NOTE]
+====
+To acquire Keycloak access to enable integration against OBP's API gateway, contact the Optiva Services team.
 
-image::./Readme_images/Keycloak_UI.png[Example Keycloak web UI screen]
-
-=== Keycloak Configuration Overview
-
-To setup Keycloak for use with Optiva's APIs, you must perform the following tasks:
-
-
-. <<Identifying the Keycloak Admin Account>>
-
-. <<Creating a Keycloak Realm>>
-
-. <<Creating a Keycloak User>>
-
-. <<Creating Keycloak Client Realm Roles for Interacting with the Customer Management Database>>
-
-. <<Creating a Keycloak User Account for Interacting with the Customer Management Database>>
-
-. <<Creating a Client and Users for API Gateway Access>>
-
-.. <<Creating a BSS User Account for an API Gateway>>
-
-.. <<Creating Keycloak Client Scopes for API Gateway>>
-
-.. <<Creating Keycloak Client for API Gateway>>
-
-.. <<Creating a Keycloak User Account for an API Gateway>>
-
-
-== Configuring Keycloak for User Authentication
-
-=== Identifying the Keycloak Admin Account
-
-During Keycloak installation an administrator account was created and this account is used as a super admin with full permissions to manage Keycloak. You can log into the Keycloak Admin Console to create realms, clients and users with an administrator account.
-
-The credentials for the admin account are detailed in the _keycloak/values-cms.${env}.yaml_ 
-file used during the installation.
-
-For more information on an admin account see https://www.keycloak.org/docs/latest/server_admin/#creating-first-admin_server_administration_guide[the official Keycloak documentation].
-
-=== Creating a Keycloak Realm
-
-A Keycloak realm is where objects such as users, applications, roles, and groups are managed. The API User will be assigned to and is able to log into a realm.
-
-==== Prerequisite
-* You will need the login credentials for the Keycloak administrator account created during deployment. For more information on an admin account https://www.keycloak.org/docs/latest/server_admin/#creating-first-admin_server_administration_guide[follow this link to the Keycloak documentation].
-
-==== Procedure
-For steps to create a new realm, https://www.keycloak.org/docs/latest/server_admin/#configuring-realms[follow this link to the official procedure on the Keycloak website].
-
-=== Creating a Keycloak User
-
-A Keycloak User represents a person that can access applications using Keycloak. A User will have personal associated attributes, for example email and home address. Users can be assigned group membership and can have specific roles assigned to them.
-
-A User is created within the Customer Management realm and is granted access to multiple applications using Keycloak clients.
-
-==== Prerequisite
-* You must know the login credentials for the Keycloak administrator account created during deployment. For more information on an admin account https://www.keycloak.org/docs/latest/server_admin/#creating-first-admin_server_administration_guide[follow this link to the Keycloak documentation].
-
-* You must have created the Customer Management realm as described in <<Creating a Keycloak Realm>>.
-
-==== Procedure
-
-For steps to create a new User, follow the procedure in https://www.keycloak.org/docs/latest/server_admin/#proc-creating-user_server_administration_guide[the official Keycloak documentation].
-
-=== Creating Keycloak Client Realm Roles for Interacting with the Customer Management Database
-
-Keycloak roles provide a type or a category for a User such as admin, user, manager, and employee. All are typical roles that may exist in an organization.
-
-The following configuration creates the required realm roles for interacting with the Customer Management Database.
-
-==== Prerequisite
-
-* You must be logged into the Keycloak UI using the admin login credentials.
-
-==== Configuration
-
-Use the following parameters to create the general realm roles for the Customer Management Portal. For the full procedure see https://www.keycloak.org/docs/latest/server_admin/#proc-creating-realm-roles_server_administration_guide[the official Keycloak documentation]:
-
-[cols="1,1"]
-|===
-|*Role Name*
-|*Description*
-
-|_csr-all-customer-operations_
-|To create/delete/view a customer and access the customer's dashboard.
-
-|_csr-spid2-admin_
-|To create/delete/view/update all entities and access their dashboards.
-
-|_csr-all-operations_
-|To create/delete/view and access the dashboard of all entities.
-|===
-
-Use the following parameters to create the service provider realm roles for interacting with the Customer Management database. This set of roles should be recreated for each service provider configured in Customer Management, modify the SPID number for each additional set. For the full procedure https://www.keycloak.org/docs/latest/server_admin/#proc-creating-realm-roles_server_administration_guide[see the official Keycloak documentation]:
-
-[cols="1,1"]
-|===
-|*Role Name*
-|*Description*
-
-|_1:*:*_
-|Permission to access/view/create/delete/update all entities and view SPID1 dashboard.
-
-|_1:admin_
-|Permission to perform admin tasks for SPID 1.
-
-|_1:approveAdjsutment:*_
-|Permission to approve adjustments for SPID 1.
-
-|_1:billingAccount:get_
-|Permission to access/view billing account details and its dashboard.
-
-|_1:billingAccount:patch_
-|Permission to update billing account details.
-
-|_1:billingAccount:post_
-|Permission to create new billing account.
-
-|_1:billingAccount:delete_
-|Permission to delete a billing account.
-
-|_1:billingAccount:*_
-|Permission to create/delete/view/ update billingAccount and access its dashboard.
-
-|_1:individual:get_
-|Permission to access/view individual details.
-
-|_1:individual:patch_
-|Permission to update individual details.
-
-|_1:individual:post_
-|Permission to create new individual.
-
-|_1:individual:delete_
-|Permission to delete a individual.
-
-|_1:individual:*_
-|Permission to create/delete/view/update individual customers and access its dashboard.
-
-|_1:customer:get_
-|Permission to access/view customer details and its dashboard.
-
-|_1:customer:patch_
-|Permission to update customer details.
-
-|_1:customer:post_
-|Permission to create new customer.
-
-|_1:customer:delete_
-|Permission to delete a customer.
-
-|_1:customer:*_
-|Permission to create/delete/view/update individual customers and access its dashboard.
-
-|_1:serviceProvider:get_
-|Permission to access/view service provider details.
-
-|_1:serviceProvider:patch_
-|Permission to update service provider details.
-
-|_1:serviceProvider:post_
-|Permission to create new service provider.
-
-|_1:allEntity:get_
-|Permission to search in all entities.
-
-|_1:dashboard:get_
-|Permission to view main CSR dashboard.
-
-|_1:exportData:*_
-|Permission to export table data from an entry list page.
-|===
-
-*Note:* Any of the realm roles created above can be enhanced as a composite role. This applies additional controls for the operations a User can perform in the Customer Management Portal. For more details on composite roles see https://www.keycloak.org/docs/latest/server_admin/#_composite-roles[the official Keycloak documentation].
-
-=== Creating a Keycloak User Account for Interacting with the Customer Management Database
-
-A Keycloak user account must be created for each application that will interact with the Customer Management database.
-
-==== Prerequisites
-
-* You must be logged into the Keycloak UI using the admin login credentials.
-
-* You must know the email address and birth name of the new User.
-
-* You must know the SPID value to be assigned to the User.
-
-* You must have created the roles and permissions assigned to the User as described in <<Creating Keycloak Client Realm Roles for Interacting with the Customer Management Database>>.
-
-==== Configuration
-
-Use the following parameters to create a User that can access the Customer Management Portal. For the full procedure see https://www.keycloak.org/docs/latest/server_admin/#proc-creating-user_server_administration_guide[the official Keycloak documentation]:
-
-* *Create User* screen:
-
-** *Username -* Enter the user name into the text box.
-
-** *Email -* Enter the responsible email address into the text box.
-
-** *Email verified -* Set the toggle to *On*.
-
-** *First name -* Enter the first name of the responsible POC into the text box.
-
-** *Last name -* Enter the birth last name of the responsible POC into the text box.
-
-Once created, edit the User to apply the following configurations:
-
-* *Attributes* tab - Populate the *Key* and *Value* parameters as follows:
-
-[cols='1,1']
-|===
-|*Key*
-|*Value*
-
-|_availableSpids_
-|This value is the SPID and name of the service provider that the User has access too, for example
-
-_1:HappyPhone._
-
-*Note:* Add this key and value pairing must be added for each service provider that the User requires access too.
-
-|_allowCsrToManageMonthlySpendLimit_
-|This value can be either of the following:
-
-* _True_ -The User can modify subscription monthly spend limits.
-
-* _False_ - The User cannot modify subscription monthly spend limits.
-
-|_allowCsrToManageCreditLimit_
-|This value can be either of the following:
-
-* _True_ - The User can modify subscription credit limits.
-
-* _False_ - The User cannot modify subscription credit limits.
-|===
-
-* *Credentials* tab:
-
-** *Password -* Enter the initial password for the user credential login.
-
-** *Password confirmation -* Enter the same initial password to confirm the correct entry.
-
-** *Temporary -* Set the toggle to *On*.
-
-* *Role Mapping* tab:
-
-** *Assign Role -* Assign the required roles from the pop-up window. Multiple roles can be selected.
-
-=== Creating a Client and Users for API Gateway Access
-
-Each external application making requests to OBP using the API gateway must have Keycloak User accounts.
-
-The following methods are used to authenticate an external application:
-
-. *Keycloak Roles -* The CM client roles must be added to the user account. For more details on configuring the roles see <<Creating Keycloak Client Realm Roles for Interacting with the Customer Management Database>>.
-
-. *Keycloak Scopes -* The API Gateway scopes must be added to the user account. For more details on configuring the scopes see <<Creating Keycloak Client Scopes for API Gateway>>.
-
-==== Configuration
-
-The following configuration is required:
-
-* <<Creating a BSS User Account for an API Gateway>>
-
-* <<Creating Keycloak Client Scopes for API Gateway>>
-
-* <<Creating Keycloak Client for API Gateway>>
-
-* <<Creating a Keycloak User Account for an API Gateway>>
-
-==== Creating a BSS User Account for an API Gateway
-
-===== Task
-
-Steps to create an API gateway User in AppCrm.
-
-===== Context
-
-An AppCrm User must be created to authenticate API requests from the API gateway.
-
-===== Procedure
-
-Use the following parameters to create an API gateway User. For the full procedure see the _Billing Support System User Guide_.
-
-* *User ID -* Enter 'service-account' into the text box.
-
-* *Group -* Select *Redknee Admin* from the dropdown list.
-
-* *Service Provider -* Select *0 - Super Spid* from the dropdown list.
-
-==== Creating Keycloak Client Scopes for API Gateway
-
-Client scopes are used to create shared configurations across all Users. A scope defines a token mapper that includes user attributes and roles that are shared in generated authentication tokens.
-
-The following configuration creates a client scope and token mapper to represent external application access to the API gateway.
-
-===== Prerequisites
-* You must be logged into the Keycloak UI using the admin login credentials.
-
-===== Configuration
-Use the following table of parameters to create the client scopes for the API Gateway. For the full procedure see https://www.keycloak.org/docs/latest/server_admin/#_client_scopes[the official Keycloak documentation]:
-
-[cols='1,1,1,2']
-|===
-|*Name*
-|*Type*
-|*Protocol*
-|*Include in Token Scope*
-
-|obp-apigw:admin	
-|Default
-|OpenID Connect	
-|Yes
-
-|obp-apigw:read	
-|Default
-|OpenID Connect	
-|Yes
-
-|obp-apigw:write	
-|Default
-|OpenID Connect	
-|Yes
-|===
-
-==== Creating Keycloak Client for API Gateway
-
-A Keycloak client is required to allow Keycloak to authenticate API Gateway requests using SSO.
-
-===== Prerequisites
-
-* You must be logged into the Keycloak UI using the admin login credentials.
-
-* You must create the client within the Keycloak realm created in Create a Keycloak Realm.
-
-* You must have created the client scopes for API Gateway as described in Creating Keycloak Client Scopes for API Gateway.
-
-* You must know the URL of the Keycloak UI.
-
-* You must know the root URL and host URL of the API Gateway in the deployment.
-
-===== Configuration
-. Use the following parameters to create the API Gateway client. For the full procedure see the official keycloak documentation:
-
-* *Client type -* Select *OpenID Connect* from the dropdown list.
-
-* *Client ID -* Enter a unique identifier, for example 'obp-apigw' into the text box. This is a required field.
-
-* *Always Display in UI* - Set the toggle to *Off*.
-
-* *Root URL -* Enter the root URL into the text box, for example of 'http://localhost:3000'.
-
-* *Home URL -* Enter the home URL into the text box, for example 'http://keycloak.cm.portal.obp:8080/*'.
-
-* *Valid redirect URLs -* Enter '*' into the text box.
-
-* *Client authentication -* Set the toggle to *On*.
-
-* *Authentication Flow -* Check the following checkboxes:
-
-** *Standard flow*
-
-** *Implicit flow*
-
-** *Direct access grants*
-
-** *Service accounts roles*
-
-. Click *Client Scopes* and add the API Gateway client scopes created previously, for the full procedure see the official Keycloak documentation. Ensure the *Assign Type* parameter is set to *default* for all added scopes.
-
-. You must set the *Access Token Lifespan* to '1 hour', for more details see the official keycloak documentation.
-
-. You must activate the *Use JWKS URL* parameter, for more details see the official keycloak documentation.
-
-==== Creating a Keycloak User Account for an API Gateway
-
-A Keycloak user account must be created for each external application that will send requests to OBP via the API gateway.
-
-===== Prerequisites
-
-* You must be logged into the Keycloak UI using the admin login credentials.
-
-* You must know the email address and birth name of the new User.
-
-* You must know the SPID value to be assigned to the User.
-
-* You must have created the BSS user account for the external application as described in <<Creating a BSS User Account for an API Gateway>>.
-
-* You must have created the roles and permissions to be added to the User as described in <<Creating Keycloak Client Realm Roles for Interacting with the Customer Management Database>>.
-
-===== Configuration
-Use the following parameters to create a User that can access the API Gateway. For the full procedure see https://www.keycloak.org/docs/latest/server_admin/#proc-creating-user_server_administration_guide[the official Keycloak documentation]:
-
-* *Create User* screen:
-
-** *Username -* Enter the user name into the text box.
-
-** *Email -* Enter the responsible email address into the text box.
-
-** *Email verified -* Set the toggle to *On*.
-
-** *First name -* Enter the first name of the responsible POC into the text box.
-
-** *Last name -* Enter the birth last name of the responsible POC into the text box.
-
-* Add the CM roles created previously to the User account. For the procedure to add roles see https://www.keycloak.org/docs/latest/server_admin/#proc-assigning-role-mappings_server_administration_guide+[the official Keycloak documentation].
+====
 
 == Request Sequencing for Common Use Cases
 
-Optiva's API provides integrators the capability to customize their integration by using a variety of endpoints to achieve different workflows. The following section describes the endpoints that are used to achieve the common workflows of third-party digital channels.  
+Optiva’s API provides integrators with a single interface to tailor the OBP subscriber life-cycle functionality to their application workflows.The OBP functionality is exposed to the integrator as a set of RESTfull endpoints. The following section describes the endpoints that are used to achieve the common workflows of third-party digital channels.  
 
 === Provisioning a New Subscriber
+
+The following section describes the endpoints, request types and sequence that should be used to provision a new subscriber using OBP's API.
+
+==== Considerations
 
 To have an active Subscription, subscribers must be associated with an Account, which in turn must be associated with a Customer and a Party. To add a new Subscription to an Account, use the _productOrder_ endpoint.
 
 There are two methods to provision a new subscriber if an Account entity, a Customer entity, and a Party entity are also needed: 
 
-* Using the _quickPrepaidBillingAccount_ endpoint. When using this endpoint, Customer Management creates a corresponding Party and Customer for the new Account. You can then create a new Subscription for the newly created Account
+* Using the _quickPrepaidBillingAccount_ endpoint. When using this endpoint, Customer Management creates a corresponding Party and Customer for the new Account. You can then create a new Subscription for the newly created Account.
 
 * Creating each entity using the following endpoints, and then creating a new Subscription for the newly created Account:
 
@@ -539,72 +141,63 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 ** _billingAccount_
 
-[cols="1,1,2,1,2"]
+==== Sequencing
+
+[cols="1,1,2,2"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Provisioning a New Subscriber using the _quickPrepaidBillingAccount_ endpoint
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/quickPrepaidBillingAccount_
-|POST
+|1. POST _/api/quickPrepaidBillingAccount_
 |-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/productOrder_
-|POST 
+|2. POST _/api/productOrder_
 |You need to include the Account's _id_ with this request 
 
 |Provisioning a New Subscriber using the _individual_, _customer_, and _billingAccount_ endpoints
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual_
-|POST
+|1. POST _/api/individual_
 |-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/customer_
-|POST
+|2. POST _/api/customer_
 |You need to include the Party's _id_ and _href_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _/api/billingAccount_
-|POST
+|3. POST _/api/billingAccount_
 |You need to include the Customer's _id_ and _href_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. _/api/productOrder_
-|POST 
+|4. POST _/api/productOrder_
 |You need to include the Account's _id_ with this request 
 
 |Adding a Stored Payment Method to a Subscriber
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |1. Create the Account as described in the previous user journeys
 |-
-|-
 
 |
 |Refer to Payment Gateway API documentation
 |2. Acquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
-|-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _/api/paymentGatewayIntegration/createToken_
-|POST
+|3. POST _/api/paymentGatewayIntegration/createToken_
 |You need to send the Account's _tokenValue_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. _/api/paymentMethod_
-|POST
+|4. POST _/api/paymentMethod_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -619,24 +212,20 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |1. Create the Account as described in the previous user journeys
 |-
-|-
 
 |
 |Refer to Payment Gateway API documentation
 |2. Acquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
-|-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _/api/paymentGatewayIntegration/createToken_
-|POST
+|3. POST _/api/paymentGatewayIntegration/createToken_
 |You need to send the Account's _tokenValue_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. _/api/paymentMethod_
-|POST
+|4. POST _/api/paymentMethod_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -649,104 +238,119 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|5. _/api/productOrder_
-|POST
+|5. POST _/api/productOrder_
 |You need to send the _atuTokenID_ and _atuAmount_ parameters with this request. The value for the _atuTokenID_ is the _tokenID_ for the Account's stored Payment Method.
 
 |===
 
-=== Mobile Number Porting
+=== Porting Mobile Numbers
 
-Mobile Number Portability allows Subscribers to move their mobile number from one service provider to another. This is possible only when the Subscriber's number is eligible for Port In to the new service provider's system. For more information, see the _/api/mnp/eligibility_ endpoint in link:./cmsapigw-swagger.yml[cmsapigw.swagger].
+The following section describes the endpoints, request types and sequence that should be used to check the port-in eligibility of existing mobile numbers using OBP's API.
 
-=== Managing Entries
+==== Considerations
 
-Customer Management's API can be used to create, retrieve, update, and delete Party, Account, and Customer entries.
+Mobile Number Portability allows Subscribers to move their mobile number from one service provider to another. This is possible only when the Subscriber's number is eligible for port into the new service provider's system.
 
-[cols="1,1,1,1,1"]
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
+|*Notes*
+
+|Porting a Mobile Number
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. POST _/api/mnp/eligibility_
+|-
+|===
+=== Managing Entries
+
+The following section describes the endpoints, request types and sequence that should be used to manage entries using OBP's API.
+
+==== Considerations
+
+The following entries can be managed using the requests in this section:
+
+* Parties
+
+* Accounts
+
+* Customers
+
+==== Sequencing
+
+[cols="1,1,1,1"]
+|===
+|*User Journey*
+|*API Specification*
+|*Sequence*
 |*Notes*
 
 |Creating a Party
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual_
-|POST
+|1. POST _/api/individual_
 |-
 
 |Viewing a list of Parties for a service provider
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual_
-|GET
+|1. GET _/api/individual_
 |-
 
 |Viewing the details of a specific Party
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual/{id}_
-|GET
+|1. GET _/api/individual/{id}_
 |To retrieve the _id_ for a specific Party, send a GET request to the _/api/individual_ endpoint
 
 |Partially editing a Party
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual/{id}_
-|PATCH
+|1. PATCH _/api/individual/{id}_
 |To retrieve the _id_ for a specific Party, send a GET request to the _/api/individual_ endpoint
 
 |Deleting a Party
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual/{id}_
-|DELETE
+|1. DELETE _/api/individual/{id}_
 |To retrieve the _id_ for a specific Party, send a GET request to the _/api/individual_ endpoint
 
 |Validating a Party
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/individual/identification/validate_
-|POST
+|1. POST _/api/individual/identification/validate_
 |-
 
 |Creating an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/billingAccount_
-|POST
+|1. POST _/api/billingAccount_
 |-
 
 |Viewing a list of Accounts for a service provider
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/billingAccount_
-|GET
+|1. GET _/api/billingAccount_
 |-
 
 |Viewing the details of a specific Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/billingAccount/{id}_
-|GET
+|1. GET _/api/billingAccount/{id}_
 |To retrieve the _id_ for a specific Account, send a GET request to the _/api/billingAccount_ endpoint
 
 |Partially editing an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/billingAccount/{id}_
-|PATCH
+|1. PATCH _/api/billingAccount/{id}_
 |To retrieve the _id_ for a specific Account, send a GET request to the _/api/billingAccount_ endpoint
 
 |Deleting an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/billingAccount/{id}_
-|DELETE
+|1. DELETE _/api/billingAccount/{id}_
 |To retrieve the _id_ for a specific Party, send a GET request to the _/api/billingAccount_ endpoint
 
 |Creating a Customer
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/customer_
-|POST
+|1. POST _/api/customer_
 |-
 
 |Viewing a list of Customers for a service provider
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/customer_
-|GET
+|1. GET _/api/customer_
 |-
 
 |Viewing the details of a specific Customer
@@ -763,172 +367,180 @@ Customer Management's API can be used to create, retrieve, update, and delete Pa
 
 |Partially editing a Customer
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/customer/{id}_
-|PATCH
+|1. PATCH _/api/customer/{id}_
 |To retrieve the _id_ for a specific Customer, send a GET request to the _/api/customer_ endpoint
 
 |Deleting a Customer
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/customer/{id}_
-|DELETE
+|1. DELETE _/api/customer/{id}_
 |To retrieve the _id_ for a specific Customer, send a GET request to the _/api/customer_ endpoint
 
 |Searching across entries
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/allEntity/{filter}_
-|GET
+|1. GET _/api/allEntity/{filter}_
 |For a full list of filterable search criteria see the link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |===
+
 === Managing Party Interactions
 
-Customer Management's API can be used to record and manage Party Interactions for a service provider.
+The following section describes the endpoints, request types and sequence that should be used to manage party interactions using OBP's API.
 
-[cols="1,1,1,1,1"]
+==== Considerations
+
+Party interactions are records of any interaction with the _person_ representing a party.
+
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |View a list of Party Interactions for a service provider
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/partyInteraction_
-|GET
+|1. GET _/api/partyInteraction_
 |-
 
 |Create a Party Interaction
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/partyInteraction_
-|POST 
+|1. POST _/api/partyInteraction_
 |-
 
 |View the details of a Party Interaction
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/partyInteraction_
-|GET
+|1. GET _/api/partyInteraction_
 |To retrieve the id for a specific Party Interaction, send a GET request to the _/api/partyInteraction_ endpoint
 
 |Delete a Party Interaction
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/partyInteraction/{id}_
-|DELETE
+|1. DELETE _/api/partyInteraction/{id}_
 |To retrieve the id for a specific Party Interaction, send a GET request to the _/api/partyInteraction_ endpoint
 
 |Update a Party Interaction
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/partyInteraction/{id}_
-|PATCH
+|1. PATCH _/api/partyInteraction/{id}_
 |To retrieve the id for a specific Party Interaction, send a GET request to the _/api/partyInteraction_ endpoint
 |===
+
 === Adding Notes to Accounts and Subscriptions
 
-[cols="1,1,1,1,1"]
+The following section describes the endpoints, request types and sequence that should be used to add notes to Accounts and Subscriptions using OBP's API.
+
+==== Considerations
+
+Notes are usually added to Accounts and Subscriptions during servicing by a CSR.
+
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Add a note to an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/account/note_
-|POST
+|1. POST _/api/account/note_
 |-
 
 |View an Account's notes
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/account/{id}/note_
-|GET
+|1. GET _/api/account/{id}/note_
 |To retrieve the id for a specific Account, send a GET request to the _/api/billingAccount_ endpoint
 
 |Add a note to a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/note_
-|POST
+|1. POST _/api/subscription/note_
 |-
 
 |View a Subscription's notes
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/note_
-|GET
+|1. GET _/api/subscription/note_
 |To retrieve the id for a specific Subscription, send a GET request to the _/api/subscription_ endpoint
 |===
+
 === Using Payment Schedules
 
+The following section describes the endpoints, request types and sequence that should be used to manage payment schedules using OBP's API.
+
+==== Considerations
 Payment Schedules provide the mechanism to charge an Account's saved payment method at a future date and time and can be used to apply Automatic Top Up (ATU) to prepaid subscriptions.
 
-Note: When applying ATU to a prepaid subscription during the onboarding process, use the _/api/productOrder_ endpoint and send the _atuTokenID_ and _atuAmount_ parameters.
+[NOTE]
+====
+When applying ATU to a prepaid subscription during the onboarding process, use the _/api/productOrder_ endpoint and send the _atuTokenID_ and _atuAmount_ parameters.
+====
 
-[cols="1,1,1,1,1"]
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Applying ATU to an Existing Prepaid Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/paymentGatewayIntegration/createSchedule_
-|POST
+|1. POST _/api/paymentGatewayIntegration/createSchedule_
 |You need to send the ID of the Account's payment token with this request
 
 |Cancelling ATU for a Prepaid Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/paymentGatewayIntegration/deleteSchedule_
-|DELETE
+|1. DELETE _/api/paymentGatewayIntegration/deleteSchedule_
 |You need to send the _scheduleID_ with this request
 
 |Changing the ATU for a Prepaid Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/paymentGatewayIntegration/deleteSchedule_
-|DELETE
+|1. DELETE _/api/paymentGatewayIntegration/deleteSchedule_
 |You need to send the _scheduleID_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/paymentGatewayIntegration/createSchedule_
-|POST
+|2. POST _/api/paymentGatewayIntegration/createSchedule_
 |You need to send the ID of the Account's payment token with this request
-
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _
 |===
+
 === Managing Payment Methods
+
+The following section describes the endpoints, request types and sequence that should be used to manage payment methods using OBP's API.
+
+==== Considerations
 
 Payment methods provide the mechanism to retrieve Account payment information, debit card or credit card details, from an external payment gateway to ensure your system is compliant with the Payment Card Industry Data Security Standards (PCI DSS).
 
 Customer Management stores the authentication credentials to retrieve payment method details for individual Accounts. None of the sensitive payment method details are stored in Customer Management.
 
-*Note:* An Account can have only one stored payment method at any time.
+[NOTE]
+====
+An Account can have only one stored payment method at any time.
+====
 
-[cols="1,1,1,1,1"]
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Adding a Stored Payment Method for an Account
 |Refer to Payment Gateway API documentation
 |1. Acquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
-|-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/paymentGatewayIntegration/createToken_
-|POST
+|2. POST _/api/paymentGatewayIntegration/createToken_
 |You need to send the Account's _tokenValue_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _/api/paymentMethod_
-|POST
+|3. POST _/api/paymentMethod_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -943,18 +555,15 @@ Customer Management stores the authentication credentials to retrieve payment me
 |Refer to Payment Gateway API documentation
 |1. Acquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
-|-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/paymentGatewayIntegration/createToken_
-|POST
+|2. POST _/api/paymentGatewayIntegration/createToken_
 |You need to send the Account's _tokenValue_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _/api/paymentMethod{id}_
-|PATCH
+|3. PATCH _/api/paymentMethod{id}_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -967,11 +576,15 @@ Customer Management stores the authentication credentials to retrieve payment me
 
 |Deleting the Stored Payment Method for an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1._/api/paymentMethod/{id}_
-|DELETE
+|1.DELETE _/api/paymentMethod/{id}_
 |-
 |===
+
 === Using Refer a Friend Bonuses
+
+The following section describes the endpoints, request types and sequence that should be used to manage Refer a Friend bonuses using OBP's API.
+
+==== Considerations
 
 Refer a Friend (RAF) functionality provides the mechanism to offer bonuses and add ons. This includes the ability to do the following:
 
@@ -983,58 +596,60 @@ Refer a Friend (RAF) functionality provides the mechanism to offer bonuses and a
 
 * Apply RAF bonuses and add ons to new or active subscriptions
 
-When using Customer Management's RAF functionality, both the referring customer (referrer) and the referred customer can be eligible to receive bonuses and add ons.
+When using RAF functionality, both the referring customer (referrer) and the referred customer can be eligible to receive bonuses and add ons.
 
-*Note:* Bonuses and add ons can include monetary rewards for both the referrer and referred customer as well as product offerings that can be added to a subscription.
+[NOTE]
+====
+Bonuses and add ons can include monetary rewards for both the referrer and referred customer as well as product offerings that can be added to a subscription.
+====
 
-[cols="1,1,1,1,1"]
+[IMPORTANT]
+====
+RAF functionality is not available on all deployments of OBP, for more information about RAF contact the Optiva Services team.
+====
+
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Applying RAF bonuses and add ons to a new subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/raf/referrer/validation_
-|POST
+|1. POST _/api/raf/referrer/validation_
 |-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/productOrder_ 
-|POST
+|2. POST _/api/productOrder_ 
 |-
 
 |Applying RAF bonuses and add ons when using Customer Management's Shopping Cart functionality
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/shoppingCart/_
-|POST
+|1. POST _/api/shoppingCart/_
 |-
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/raf/referrer/validation_
-|POST
+|2. POST _/api/raf/referrer/validation_
 |
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _/api/shoppingCart/{id}_
-|PATCH
+|3.  PATCH _/api/shoppingCart/{id}_
 |
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. _api/productOrder_
-|POST
+|4. POST _api/productOrder_
 |
 
 |Applying RAF bonuses and add ons to an active subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/raf/referrer/validation_
-|POST
+|1. POST _/api/raf/referrer/validation_
 |You need to provide the following with the request:
 
 - Referring customer's details including their RAF code
@@ -1043,198 +658,234 @@ When using Customer Management's RAF functionality, both the referring customer 
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _/api/raf/apply_ 
-|POST
+|2. POST _/api/raf/apply_ 
 |-
 
 |Viewing the RAF History of a customer
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/raf/histoy/{id}_
-|GET
+|1. GET _/api/raf/histoy/{id}_
 |
 |===
+
 === Viewing Subscription Information
 
-Customer Management’s API can be used to retrieve different details about a Subscription.
+The following section describes the endpoints, request types and sequence that should be used to retrieve different details about a Subscription using OBP's API.
 
-[cols="1,1,1,1,1"]
+==== Considerations
+
+None
+
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Viewing the types of Subscriptions supported by a Service Provider
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/type_
-|GET
+|1. GET _/api/subscription/type_
 |-
 
 |Viewing a list of Subscriptions for an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription_
-|GET
+|1. GET _/api/subscription_
 |-
 
 |Viewing the details of a specific Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/profile_
-|GET
+|1. GET _/api/subscription/profile_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint. *Note:* You can use a Subscription's mobile number in place of the Subscription's ID when sending this request
 
 |Viewing a Subscription's price plan
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/{id}/pricePlan_
-|GET
+|1. GET _/api/subscription/{id}/pricePlan_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint
 
 |Viewing a Subscription's bucket history
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/{id}/history_
-|GET
+|1. GET _/api/subscription/{id}/history_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint
 
 |Viewing a Subscription's balance
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/balanceQuery_
-|GET
+|1. GET _/api/subscription/balanceQuery_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint. *Note:* You can use a Subscription's mobile number in place of the Subscription's ID when sending this request
 
 |Viewing a Subscription's balance history
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/balanceHistory_
-|GET
+|1. GET _/api/subscription/balanceHistory_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint. *Note:* You can use a Subscription's mobile number in place of the Subscription's ID when sending this request
 
 |Viewing a Subscription's bundle balance
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/balanceHistory_
-|GET
+|1. GET _/api/subscription/balanceHistory_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint. *Note:* You can use a Subscription's mobile number in place of the Subscription's ID when sending this request
 
 |Viewing a Subscription's call records
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/callDetail_
-|GET
+|1. GET _/api/callDetail_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint. *Note:* You can use a Subscription's mobile number in place of the Subscription's ID when sending this request
 
 |Viewing a list of transactions for a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/{id}/transaction_
-|GET
+|1. GET _/api/subscription/{id}/transaction_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint
 
 |Viewing a detailed list of transactions for a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _/api/subscription/{id}/detailedSubscriptionTransaction_
-|GET
+|1. GET _/api/subscription/{id}/detailedSubscriptionTransaction_
 |To retrieve the _subscriptionId_ for a specific Subscription, send a GET request to the _/api/subscription_ endpoint
 |===
 
 === Managing Subscription Adjustments
 
-Customer Management's API can be used to request, retrieve, and partially edit an adjustment to a Subscription.
+The following section describes the endpoints, request types and sequence that should be used to manage Subscription adjustments using OBP's API.
 
-[cols="1,1,1,1,1"]
+==== Considerations
+
+None
+
+==== Sequencing
+
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Requesting an adjustment to a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/subscription/adjustment_
-|POST
+|1. POST _api/subscription/adjustment_
 |You must send values for the _accountID_, _subscriptionId_, _mobileNumber_ as well as other mandatory parameters, see the API specification for more detail 
 
 |Viewing an adjustment to a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/subscription/adjustment_
-|GET
+|1. GET _api/subscription/adjustment_
 |You must send values for the _accountID_ and _subscriptionId_ as part of this request
 
 |Viewing an adjustment to a Subscription using only the _adjustmentId_
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/subscription/adjustment/{adjustmentId}_
-|GET
+|1. GET _api/subscription/adjustment/{adjustmentId}_
 |Use this request when only the _adjustmentId_ is known
 
 |Partially editing an adjustment to a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/subscription/adjustment/{adjustmentId}_
-|PATCH
+|1. PATCH _api/subscription/adjustment/{adjustmentId}_
 |You must know the _adjustmentId_ of the adjustment that you want to edit
 |===
 
-=== Adding Product Offerings or Add Ons to a Subscription
+=== Adding or Removing Product Offerings or Add Ons to or from a Subscription
 
-Product offerings and add ons are added to a Subscription by submitting an order,see the _/api/productOrder_ endpoint in link:./cmsapigw-swagger.yml[cmsapigw.swagger].
+The following section describes the endpoints, request types and sequence that should be used to add or remove product offerings or add ons to a Subscription using OBP's API.
 
-=== Removing Product Offerings or Add Ons from a Subscription
+==== Considerations
 
-Product offerings and add ons can be removed from a Subscription by submitting a PUT request to the _/api/productOrder_ endpoint. For more information see the link:./cmsapigw-swagger.yml[cmsapigw.swagger].
+None
 
-=== Blocking a SIM
+==== Sequencing
 
-A subscriber's SIM can be blocked by using PUT requests to remove all product offerings and add ons from their Subscription. For more information see the _/api/productOrder_ endpoint in link:./cmsapigw-swagger.yml[cmsapigw.swagger].
-
-=== Adding Credit to a Subscription
-
-Credit is added to a Subscription by using a voucher recharge,see _/api/subscription/voucherRecharge_ endpoint in link:./cmsapigw-swagger.yml[cmsapigw.swagger].
-
-=== Managing Subscribers' PINs
-
-Customer Management's API can be used to generate, set, reset, change, verify, and delete a subscriber's PIN.
-
-[cols="1,1,1,1,1"]
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
+|*Notes*
+
+|Adding product offerings or add ons to a Subscription
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. POST _api/productOrder_
+|-
+
+|Removing product offerings or add ons to a Subscription
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. PUT _api/productOrder_
+|-
+
+|Blocking a SIM
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. PUT _api/productOrder_
+|To block a SIM, use PUT requests to remove all product offerings and add ons from the Subscription
+|===
+
+
+=== Adding Credit to a Subscription
+
+The following section describes the endpoints, request types and sequence that should be used to add credit to a Subscription using OBP's API.
+
+==== Considerations
+
+None
+
+==== Sequencing
+[cols="1,1,1,1"]
+|===
+|*User Journey*
+|*API Specification*
+|*Sequence*
+|*Notes*
+
+|Adding credit to a Subscription
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|1. POST _/api/subscription/voucherRecharge_
+|-
+|===
+
+=== Managing Subscribers' PINs
+
+The following section describes the endpoints, request types and sequence that should be used to manage subcribers' PINs using OBP's API.
+
+==== Considerations
+
+None
+
+==== Sequencing
+[cols="1,1,1,1"]
+|===
+|*User Journey*
+|*API Specification*
+|*Sequence*
 |*Notes*
 
 |Generate a PIN for a subscriber
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/pin/generate_
-|POST
+|1. POST _api/pin/generate_
 |You need to include the subscriber's MSISDN as part of this request
 
 |Setting a subscriber's PIN
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/pin/set_
-|POST
+|1. POST _api/pin/set_
 |You need to include the subscriber's MSISDN as part of this request
 
 |Resetting a subscriber's PIN
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/pin/reset_
-|POST
+|1. POST _api/pin/reset_
 |You need to include the subscriber's MSISDN as part of this request
 
 |Changing a subscriber's PIN
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/pin/change_
-|POST
+|1. POST _api/pin/change_
 |You need to include the subscriber's MSISDN and their old PIN as part of this request
 
 |Verifying a subscriber's PIN
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/pin/verify_
-|POST
+|1. POST _api/pin/verify_
 |You need to include the subscriber's MSISDN and their PIN as part of this request
 
 |Deleting a subscriber's PIN
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/pin_
-|DELETE
+|1. DELETE _api/pin_
 |You need to include the subscriber's MSISDN as part of this request
 |===
 
 === Activating a SIM
+
+The following section describes the endpoints, request types and sequence that should be used to activate a SIM using OBP's API.
+
+==== Considerations
 
 The use case for activating a SIM is made up of the following steps:
 
@@ -1252,83 +903,78 @@ The use case for activating a SIM is made up of the following steps:
 
 7. Applying a payment charge
 
-[cols="1,1,1,1,1"]
+==== Sequencing
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Activating a SIM
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/productOffering_ or _/api/productOffering/{id}/addOn_
-|GET
+|1. GET _api/productOffering_ or _/api/productOffering/{id}/addOn_
 |From the response to this request, identify the product offering and add ons that you want to add to the Subscription. *Note:* You need to send the _id_ for the product offering to return its associated add ons
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _api/subscription_
-|GET
+|2. GET _api/subscription_
 |From the response to this request, identify the Subscription that the SIM should be activated against
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. _api/shoppingCart_
-|POST
+|3. POST _api/shoppingCart_
 |Add the product offering and/or add ons to a shopping cart
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. _api/shoppingCart_
-|GET
+|4. GET _api/shoppingCart_
 |(Optional) Send the _customerId_ to retrieve the shopping cart
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|5. _api/productOrder_
-|POST
+|5. POST _api/productOrder_
 |Submit the order
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|6. _api/productOrder/npg/{id}/status
-|PATCH
+|6. PATCH _api/productOrder/npg/{id}/status
 |(Optional) When the subscriber wants to import their existing number, check the order status before requesting payment
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|7. _/api/paymentGatewayIntegration/applyPaymentCharge_
-|POST
+|7. POST _/api/paymentGatewayIntegration/applyPaymentCharge_
 |Apply a payment charge to the Account for the SIM activation. Alternatively, if you want to apply recurring charging see <<Using Payment Schedules>>
 |===
 
 === Changing a Payment Plan or Subscribing to a new Product Offering or Add On
 
-The use case for changing a payment plan or subscribing to a new Product Offer or Add On for a subscriber is made up of the following steps:
+The following section describes the endpoints, request types and sequence that should be used to change a payment plan or subscribe to a new product offer or add on using OBP's API.
+
+==== Considerations
+
+The use case for changing a payment plan or subscribing to a new product offer or add on for a subscriber is made up of the following steps:
 
 1. Retrieving the ID for the product offering and/or add ons that the subscriber wants to purchase
 
 2. Submitting an order
 
-[cols="1,1,1,1,1"]
+==== Sequencing
+[cols="1,1,1,1"]
 |===
 |*User Journey*
 |*API Specification*
 |*Sequence*
-|*Request Type*
 |*Notes*
 
 |Changing a Payment Plan or Subscribing to a new Product Offering or Add On
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. _api/productOffering_ or _/api/productOffering/{id}/addOn_
-|GET
+|1. GET _api/productOffering_ or _/api/productOffering/{id}/addOn_
 |From the response to this request, identify the product offering and/or add ons that you want to add to the Subscription. *Note:* You need to send the _id_ for the product offering to return its associated add ons
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. _api/productOrder_
-|POST
+|2. POST _api/productOrder_
 |Submit the order
 |===
 
