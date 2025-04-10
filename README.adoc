@@ -27,7 +27,7 @@ Optiva's OBP API gateway enables integrators to leverage the power of OBP with t
 
 OBP's API gateway consists of the three following API Specifications:
 
-* *cmsapigw-swagger -* Customer Management API, which includes a series of requests that allow third-party applications to manage the life cycle of a telecomms subcscriber. 
+* *cmsapigw-swagger -* Customer Management API, which includes a series of requests that allow third-party applications to manage the life cycle of a telecomms subscriber. 
 
 * *obp-rtr-apigw -* OBP API (REST to REST), which includes a series of requests to interact with OBP.   
 
@@ -826,7 +826,7 @@ None
 
 === Managing Subscribers' PINs
 
-The following section describes the endpoints, request types and sequence that should be used to manage subcribers' PINs using OBP's API.
+The following section describes the endpoints, request types and sequence that should be used to manage subscribers' PINs using OBP's API.
 
 ==== Considerations
 
