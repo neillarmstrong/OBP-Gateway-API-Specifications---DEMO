@@ -1,5 +1,10 @@
 = Integrating with OBP's API Gateway
 
+[NOTE]
+====
+Release Version - OBP 25.X
+====
+
 == Table of Contents
 * <<Overview>>
 ** <<TMF Certified Endpoints>>
