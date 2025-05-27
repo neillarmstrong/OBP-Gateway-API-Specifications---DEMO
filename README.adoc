@@ -5,6 +5,11 @@
 Release Version - OBP 25.X
 ====
 
+[IMPORTANT]
+====
+Not all features and functionality described in this API Onboarding Guide are available to all deployments of OBP's API Gateway. For more information speak to your Optiva Representative.
+====
+
 == Table of Contents
 * <<Overview>>
 ** <<TMF Certified Endpoints>>
@@ -57,6 +62,26 @@ OBP's API gateway has been created leveraging TMF specifications for requests an
 |*Request Type*
 |*Certified Against*
 
+|_/api/bilingAccount_
+|GET
+|TMF666
+
+|
+|POST
+|TMF666
+
+|_/api/bilingAccount/{id}_
+|GET
+|TMF666
+
+|
+|DELETE
+|TMF666
+
+|
+|PATCH
+|TMF666
+
 |_/api/customer_
 |GET
 |TMF629
@@ -96,6 +121,31 @@ OBP's API gateway has been created leveraging TMF specifications for requests an
 |
 |PATCH
 |TMF632
+
+
+|_/api/partyInteraction_
+|GET
+|TMF633 (Ready for Certification)
+
+|
+|POST
+|TMF633 (Ready for Certification)
+
+|_/api/partyInteraction/{id}_
+|GET
+|TMF633 (Ready for Certification)
+
+|
+|POST
+|TMF633 (Ready for Certification)
+
+|
+|PATCH
+|TMF633 (Ready for Certification)
+
+|
+|DELETE
+|TMF633 (Ready for Certification)
 |===
 
 == Getting Started
@@ -114,6 +164,34 @@ To acquire Keycloak access to enable integration against OBP's API gateway, cont
 
 ====
 
+=== Viewing OBP's API Specifications on Your Local Machine
+
+OBP's API Gateway is deployed  to your envrionment with its corresponding API specification, meaning you can locally view the API specifications in Swagger.
+
+==== Configuring Your Environment to Locally View OBP's API Specifications
+
+You need to update your _hosts_ file with the IP address and name of the ingress controller of your environment, for example if your environment was called obp-my-deployment and its IP address was 1.2.3.4, then you'd need to add the following addition to your hosts file:
+
+*1.2.3.4 obp-my-deployment*
+
+=== Viewing OBP's API Specification on Your Local Machine
+
+[NOTE]
+====
+By default, Swagger displays the obp-rts-apigw API Specification.
+====
+
+1. On the local machine, open a web browser.
+2. In the address bar, type http://<INGRESS_HOST>/api/v1/swagger, and then press *RETURN*. The browser displays the obp-rtr-apigw API Specification.
+
+To switch between the API Specifications, enter one of the following in Swagger's search bar, and then press *RETURN*:
+
+* *doc/cmsapigw-swagger.yml* to view OBP's Customer Management API Specification
+
+* *doc/obp-rtr-apigw.yml* to view OBP's REST-to-REST API Specification
+
+* *obp-rts-apigw* to view OBP's REST-to-SOAP API Specification
+
 == Request Sequencing for Common Use Cases
 
 Optiva’s API provides integrators with a single interface to tailor the OBP subscriber life-cycle functionality to their application workflows.The OBP functionality is exposed to the integrator as a set of RESTfull endpoints. The following section describes the endpoints that are used to achieve the common workflows of third-party digital channels.  
@@ -124,7 +202,7 @@ The following section describes the endpoints, request types and sequence that s
 
 ==== Considerations
 
-To have an active Subscription, subscribers must be associated with an Account, which in turn must be associated with a Customer and a Party. To add a new Subscription to an Account, use the _productOrder_ endpoint.
+To have an active Subscription, subscribers must be associated with an Account, which in turn must be associated with a Customer and a Party.
 
 There are two methods to provision a new subscriber if an Account entity, a Customer entity, and a Party entity are also needed: 
 
@@ -153,9 +231,43 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |-
 
 |
+|Refer to Payment Gateway API documentation
+|2. Acquire the Account's _tokenValue_ from your integrated payment gateway.
+|-
+
+
+|
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. POST _/api/productOrder_
-|You need to include the Account's _id_ with this request 
+|3. POST _/api/paymentMethod_
+|You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
+
+*Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
+
+
+- _maskedCardNumber_ - We recommend using '1111'
+
+
+- _expiryDate_ - We recommend using '2200/01'
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|4. POST _/api/paymentGatewayIntegration/createToken_
+|You need to send the Account's _tokenValue_ with this request. The token returned in this response can be used to apply individual charges or used for recurring payments, such as ATU.
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|5. POST _/api/shoppingCart_
+|Using the Shopping Cart provides the total cost for the Subcription including charges and taxes
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|6. POST _/api/paymentGatewayIntegration/applyPaymentCharge_
+|You need to send the _token_ information, Subscriber's _mobileNumber_, their _subscriptionType_, the _preTaxAMount_ and _taxAmount_ as part of this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|9. POST _/api/productOrder_
+|You need to include the Account's _id_ with this request
 
 |Provisioning a New Subscriber using the _individual_, _customer_, and _billingAccount_ endpoints
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
@@ -173,28 +285,14 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |You need to include the Customer's _id_ and _href_ with this request
 
 |
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. POST _/api/productOrder_
-|You need to include the Account's _id_ with this request 
-
-|Adding a Stored Payment Method to a Subscriber
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. Create the Account as described in the previous user journeys
-|-
-
-|
 |Refer to Payment Gateway API documentation
-|2. Acquire the Account's _tokenValue_ from your integrated payment gateway.
+|4. Acquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
 
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. POST _/api/paymentGatewayIntegration/createToken_
-|You need to send the Account's _tokenValue_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. POST _/api/paymentMethod_
+|5. POST _/api/paymentMethod_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -204,6 +302,26 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 
 - _expiryDate_ - We recommend using '2200/01'
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|6. POST _/api/paymentGatewayIntegration/createToken_
+|You need to send the Account's _tokenValue_ with this request. The token returned in this response can be used to apply individual charges or used for recurring payments, such as ATU.
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|7. POST _/api/shoppingCart_
+|Using the Shopping Cart provides the total cost for the Subcription including charges and taxes
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|8. POST _/api/paymentGatewayIntegration/applyPaymentCharge_
+|You need to send the _token_ information, Subscriber's _mobileNumber_, their _subscriptionType_, the _preTaxAMount_ and _taxAmount_ as part of this request
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|9. POST _/api/productOrder_
+|You need to include the Account's _id_ with this request
 
 |Adding a Stored Payment Method to a Subscriber and Adding an Automatic Top Up (ATU)
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
@@ -215,14 +333,10 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 |2. Acquire the Account's _tokenValue_ from your integrated payment gateway.
 |-
 
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. POST _/api/paymentGatewayIntegration/createToken_
-|You need to send the Account's _tokenValue_ with this request
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. POST _/api/paymentMethod_
+|3. POST _/api/paymentMethod_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -232,6 +346,11 @@ There are two methods to provision a new subscriber if an Account entity, a Cust
 
 
 - _expiryDate_ - We recommend using '2200/01'
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|4. POST _/api/paymentGatewayIntegration/createToken_
+|You need to send the Account's _tokenValue_ with this request. The token returned in this response can be used to apply individual charges or used for recurring payments, such as ATU.
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
@@ -318,12 +437,12 @@ The following entries can be managed using the requests in this section:
 |Creating an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |1. POST _/api/billingAccount_
-|-
+|You need to send the Party's and Customer's _id_ as part of this request. To retrieve the Party's and the Customer's _id_, send a respective GET request to the _/api/individual_ and _/api/customer_ endpoints
 
 |Viewing a list of Accounts for a service provider
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |1. GET _/api/billingAccount_
-|-
+|
 
 |Viewing the details of a specific Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
@@ -491,7 +610,7 @@ When applying ATU to a prepaid subscription during the onboarding process, use t
 |Changing the ATU for a Prepaid Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |1. DELETE _/api/paymentGatewayIntegration/deleteSchedule_
-|You need to send the _scheduleID_ with this request
+|You need to send the _scheduleID_ with this request. To retrieve the _scheduleID_, send a GET request to the _/api/paymentGatewayIntegration/readSchedule_ endpoint
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
@@ -530,12 +649,7 @@ An Account can have only one stored payment method at any time.
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. POST _/api/paymentGatewayIntegration/createToken_
-|You need to send the Account's _tokenValue_ with this request
-
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. POST _/api/paymentMethod_
+|2. POST _/api/paymentMethod_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -545,6 +659,11 @@ An Account can have only one stored payment method at any time.
 
 
 - _expiryDate_ - We recommend using '2200/01'
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. POST _/api/paymentGatewayIntegration/createToken_
+|You need to send the Account's _tokenValue_ with this request. The token returned in this response can be used to apply individual charges or used for recurring payments, such as ATU.
 
 |Updating the Stored Payment Method for an Account
 |Refer to Payment Gateway API documentation
@@ -553,12 +672,7 @@ An Account can have only one stored payment method at any time.
 
 |
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. POST _/api/paymentGatewayIntegration/createToken_
-|You need to send the Account's _tokenValue_ with this request
-
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3. PATCH _/api/paymentMethod{id}_
+|2. PATCH _/api/paymentMethod{id}_
 |You need to send the _tokenValue_ as well as the last four digits of the credit or debit card and the card's expiry date.
 
 *Note:* For payment gateways like PayPal that use a user credential as reference for the _tokenValue_ we recommend sending the following dummy values:
@@ -569,9 +683,19 @@ An Account can have only one stored payment method at any time.
 
 - _expiryDate_ - We recommend using '2200/01'
 
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|3. POST _/api/paymentGatewayIntegration/createToken_
+|You need to send the Account's _tokenValue_ with this request. The token returned in this response can be used to apply individual charges or used for recurring payments, such as ATU.
+
 |Deleting the Stored Payment Method for an Account
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1.DELETE _/api/paymentMethod/{id}_
+|1. DELETE _/api/paymentMethod/{id}_
+|-
+
+|
+|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
+|2. DELETE _/api/paymentGatewayIntegration/deleteToken_
 |-
 |===
 
@@ -622,29 +746,9 @@ RAF functionality is not available on all deployments of OBP, for more informati
 |2. POST _/api/productOrder_ 
 |-
 
-|Applying RAF bonuses and add ons when using Customer Management's Shopping Cart functionality
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. POST _/api/shoppingCart/_
-|-
-
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|2. POST _/api/raf/referrer/validation_
-|
-
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|3.  PATCH _/api/shoppingCart/{id}_
-|
-
-|
-|link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|4. POST _api/productOrder_
-|
-
 |Applying RAF bonuses and add ons to an active subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. POST _/api/raf/referrer/validation_
+|1. POST _/api/raf/validation_
 |You need to provide the following with the request:
 
 - Referring customer's details including their RAF code
@@ -659,7 +763,7 @@ RAF functionality is not available on all deployments of OBP, for more informati
 |Viewing the RAF History of a customer
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
 |1. GET _/api/raf/histoy/{id}_
-|
+|You need to send the Customer _id_ for the Customer who's RAF History you want to view. To retrieve the Customer's _id_, send a GET request to the _/api/customer_ endpoint
 |===
 
 === Viewing Subscription Information
@@ -795,15 +899,15 @@ None
 |1. POST _api/productOrder_
 |-
 
-|Removing product offerings or add ons to a Subscription
+|Removing product offerings or add ons from a Subscription
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. PUT _api/productOrder_
-|-
+|1. POST _api/productOrder_
+|When using this request, send an _action_ value of *REMOVE* for the product offers or add ons that you want to remove from the Subscription
 
 |Blocking a SIM
 |link:./cmsapigw-swagger.yml[cmsapigw.swagger]
-|1. PUT _api/productOrder_
-|To block a SIM, use PUT requests to remove all product offerings and add ons from the Subscription
+|1. POST _api/productOrder_
+|To block a SIM, send an _action_ value of *REMOVE* for all product offerings and add ons of the Subscription
 |===
 
 
