@@ -192,7 +192,7 @@ To switch between the API Specifications, enter one of the following in Swagger'
 
 == Request Sequencing for Common Use Cases
 
-Optiva’s API provides integrators with a single interface to tailor the OBP subscriber life-cycle functionality to their application workflows.The OBP functionality is exposed to the integrator as a set of RESTfull endpoints. The following section describes the endpoints that are used to achieve the common workflows of third-party digital channels.  
+Optiva’s API provides integrators with a single interface to tailor the OBP subscriber life-cycle functionality to their application workflows. The OBP functionality is exposed to the integrator as a set of RESTfull endpoints. The following section describes the endpoints that are used to achieve the common workflows of third-party digital channels.  
 
 === Provisioning a New Subscriber
 
