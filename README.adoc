@@ -164,7 +164,7 @@ To acquire Keycloak access to enable integration against OBP's API gateway, cont
 
 === Viewing OBP's API Specifications on Your Local Machine
 
-OBP's API Gateway is deployed  to your envrionment with its corresponding API specification, meaning you can locally view the API specifications in Swagger.
+OBP's API Gateway is deployed  to your environment with its corresponding API specification, meaning you can locally view the API specifications in Swagger.
 
 ==== Configuring Your Environment to Locally View OBP's API Specifications
 
