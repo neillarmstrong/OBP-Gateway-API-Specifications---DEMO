@@ -54,8 +54,6 @@ OBP's API specifications are holistic and include both requests that can be inte
 
 OBP's API gateway has been created leveraging TMF specifications for requests and responses. The following endpoints are TMF certified:
 
-==== Customer Management API
-
 [cols="1,1,1"]
 |===
 |*Endpoint*
