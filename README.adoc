@@ -2,7 +2,7 @@
 
 [NOTE]
 ====
-Release Version - OBP 25.X
+Release Version - OBP 25.2
 ====
 
 [IMPORTANT]
@@ -31,6 +31,9 @@ Not all features and functionality described in this API Onboarding Guide are av
 ** <<Managing Subscribers' PINs>>
 ** <<Activating a SIM>>
 ** <<Changing a Payment Plan or Subscribing to a new Product Offering or Add On>>
+* <<Error Response Codes>>
+** <<Error Codes>>
+** <<Other Error Codes>>
 
 == Overview
 Optiva's OBP API gateway enables integrators to leverage the power of OBP with third-party applications.
@@ -1075,3 +1078,160 @@ The use case for changing a payment plan or subscribing to a new product offer o
 |Submit the order
 |===
 
+== Error Response Codes
+
+The OBP API Gateway uses the following HTTP response code to indicate successful and unsuccessful responses:
+
+[cols="1,1"]
+|===
+|*HTTP Code*
+|*Explanation*
+
+|200
+|Success. This is returned when the request reaches to the OBP backend (SOAP API). The body can include either a success or business error response. (_AuthorizationReturn_)
+|===
+
+=== Example body for a successful response
+
+[source, json]
+----
+{
+    "AuthorizationReturn": {
+	    "authNumber": "509859889840",
+		"statusInfo": {
+			"errorCode": "0000",
+			"errorMessage": "Activation successful"
+		}
+	}
+}
+----
+
+=== Example body for an unsuccessful response
+
+[source, json]
+----
+{
+    "AuthorizationReturn": {
+        "statusInfo": {
+            "errorCode": "0011",
+            "errorMessage": "Request already exists"
+        }
+    }
+}
+----
+
+== Error Codes
+
+The following are a list of error codes that can be returned as part of an HTTP 200 response from the OBP API Gateway:
+
+=== _activateMobile_ operation error codes
+
+[cols="1,1,1"]
+|===
+|*Error Code*
+|*Error Message*
+|*Explanation*
+
+|0001
+|Invalid state for activate operation
+|The subscription being activated is not in an *Available* state
+
+|0006
+|Internal/External System Error
+|Internal error by API during processing
+|===
+
+=== _reverseActivation_ operation error codes
+
+[cols="1,1,1"]
+|===
+|*Error Code*
+|*Error Message*
+|*Explanation*
+
+|0003
+|Original activation confirmation not found
+|When the original activation Confirmation is not found during reverse activation request from the POS
+
+|0006
+|Internal/External System Error
+|Internal error by API during processing
+
+|0011
+|Request already exists
+|-
+|===
+
+=== _rechargeMobile_ operation error codes
+
+[cols="1,1,1"]
+|===
+|*Error Code*
+|*Error Message*
+|*Explanation*
+
+|0006
+|Internal/External System Error
+|Internal error by API during processing
+
+|0005
+|Invalid state for recharge operation
+|The subscription being recharged is not in the correct state
+
+|0007
+|PLU mapping to Package ID does not exist
+|-
+
+|0011
+|Request already exists
+|-
+
+|0010
+|Unable to purchase package due to insufficient funds
+|-
+|===
+
+=== _reverseRecharge_ operation error codes
+
+[cols="1,1,1"]
+|===
+|*Error Code*
+|*Error Message*
+|*Explanation*
+
+|0006
+|Internal/External System Error
+|Internal error by API during processing
+
+|0009
+|Reversed amount from POS is greater than main balance
+|-
+
+|0011
+|Request already exists
+|-
+|===
+
+== Other Error Codes
+
+The following are a list of other error codes that can be returned by OBP's API Gateway:
+
+[cols="1,1"]
+|===
+|*HTTP Code*
+|*Explanation*
+
+|401
+|Unauthorized
+
+Authentication token is invalid
+
+|400
+|Bad request
+
+|404
+|Not found
+
+|500
+|Internal Server Error
+|===
